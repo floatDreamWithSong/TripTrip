@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../prisma-generated"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  uid          Int   @id @default(autoincrement())
+  openId       String @unique
+  gender       Int   @default(0) // 0: 未知, 1: 男, 2: 女
+  phone        String @unique
+  username     String
+  avatar       String
+  userType     Int      @default(0) // 0: 游客, 1: 私域认证用户
+  email        String?
+  privateId    String?  @map("private_id")
+  registerTime DateTime @default(now()) @map("register_time")
+
+  @@map("users")
+}

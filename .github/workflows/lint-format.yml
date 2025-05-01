@@ -13,6 +13,8 @@ jobs:
         with:
           version: 8
       - run: pnpm install
+      - run: pnpm build:types
+      - run: pnpm build:utils
       - run: pnpm lint
       - run: pnpm format
       - name: Check for changes

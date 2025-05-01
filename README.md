@@ -6,6 +6,11 @@ TripTrip是一个基于pnpm workspace的monorepo项目，主要优点包括：
 
 以下是主要脚本命令的使用说明：
 
+### 安装依赖
+```bash
+pnpm install
+```
+
 ### 开发环境启动
 ```bash
 # 启动管理后台开发服务

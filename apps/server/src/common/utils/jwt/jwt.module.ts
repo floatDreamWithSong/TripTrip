@@ -7,7 +7,6 @@ import { Configurations } from 'src/common/config';
   imports: [
     JwtModule.register({
       secret: Configurations.JWT_SECRET,
-      signOptions: { expiresIn: Configurations.JWT_EXPIRATION_TIME },
     }),
   ],
   providers: [JwtUtils],

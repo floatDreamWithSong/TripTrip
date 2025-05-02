@@ -1,52 +1,59 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
-  Put,
-  UploadedFile,
-  UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
-import { User } from 'src/common/decorators/user.decorator';
 
+import { JwtPayload, sendEmailInterface, UserLoginInterface, UserRegisterInterface } from '@triptrip/types';
+import { Public } from 'src/common/decorators/public.decorator';
 import { UserType } from 'src/common/decorators/user-type.decorator';
-import { JwtPayload } from '@triptrip/types';
+import { User } from 'src/common/decorators/user.decorator';
 
 @Controller('user')
 export class UserController {
+  private readonly logger = new Logger(UserController.name);
   constructor(private readonly userService: UserService) {}
 
+  @Post('code')
   @HttpCode(HttpStatus.OK)
-  @Put('avatar')
-  @UseInterceptors(FileInterceptor('image'))
-  changeAvatar(@UploadedFile() image: Express.Multer.File, @User() user: JwtPayload) {
-    // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/webp', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(image.mimetype)) {
-      throw new Error('不支持的文件类型，仅支持 JPG、PNG、GIF WEBP 格式');
-    }
-    return this.userService.changeAvatar(image, user);
+  @Public()
+  async send(@Body() body: sendEmailInterface) {
+    return await this.userService.sendVerifyCode(body.email);
   }
 
+  @Post('register')
   @HttpCode(HttpStatus.OK)
-  @Post('sendVerifyCode')
-  @UserType('onlyUnAuthedUser')
-  async sendVerifyCode(@Body('email') email: string, @User() user: JwtPayload) {
-    await this.userService.sendVerifyCode(email, user.openid);
-    return null;
+  @Public()
+  async register(@Body() body: UserRegisterInterface) {
+    return await this.userService.register(body);
   }
 
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Post('verifyCode')
-  @UserType('onlyUnAuthedUser')
-  async verifyCode(
-    @Body('email') email: string,
-    @Body('code') code: string,
-    @User() user: JwtPayload,
-  ) {
-    return this.userService.verifyCode(email, code, user.openid);
+  @Public()
+  async login(@Body() body: UserLoginInterface) {
+    return await this.userService.login(body);
+  }
+
+  @Get('onlyUser')
+  @UserType('onlyUser')
+  onlyUser(@User() user: JwtPayload) {
+    this.logger.log(user);
+    return 'onlyUser';
+  }
+  @Get('onlyReviewer')
+  @UserType('onlyReviewer')
+  onlyReviewer() {
+    return 'onlyReviewer';
+  }
+  @Get('onlyAdmin')
+  @UserType('onlyAdmin')
+  onlyAdmin() {
+    return 'onlyAdmin';
   }
 }

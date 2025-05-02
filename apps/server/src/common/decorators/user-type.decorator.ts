@@ -6,13 +6,17 @@ export const USER_TYPE = 'user_type';
 export type UserTypeValidator = (user: JwtPayload) => boolean;
 
 interface UserTypeValidatorMap {
-  onlyUnAuthedUser: UserTypeValidator;
-  onlyAuthedUser: UserTypeValidator;
+  onlyUser: UserTypeValidator;
+  onlyReviewer: UserTypeValidator;
+  onlyAdmin: UserTypeValidator;
+  beyondUser: UserTypeValidator;
 }
 
 const validators: UserTypeValidatorMap = {
-  onlyUnAuthedUser: (user: JwtPayload) => user.userType === 0,
-  onlyAuthedUser: (user: JwtPayload) => user.userType === 1,
+  onlyUser: (user: JwtPayload) => user.userType === 0,
+  onlyReviewer: (user: JwtPayload) => user.userType === 1,
+  onlyAdmin: (user: JwtPayload) => user.userType === 2,
+  beyondUser: (user: JwtPayload) => user.userType > 0,
 };
 
 export const UserType = (validator: UserTypeValidator | keyof UserTypeValidatorMap) => {

@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CosService } from '../../common/utils/cos/cos.service';
 import { PrismaService } from '../../common/utils/prisma/prisma.service';
 import { EmailService } from 'src/common/utils/email/email.service';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
+import { VerificationCodeService } from 'src/modules/user/verification-code.service';
 import { EXCEPTIONS } from 'src/common/exceptions';
 import { JwtUtils } from 'src/common/utils/jwt/jwt.service';
 import { emailSchema } from '@triptrip/utils';
@@ -17,7 +16,7 @@ export class UserService {
     private readonly prismaService: PrismaService,
     private readonly emailService: EmailService,
     private readonly jwtUtils: JwtUtils,
-    @InjectRedis() private readonly redisService: Redis,
+    private readonly verificationCodeService: VerificationCodeService,
   ) {}
   private checkEmail(email: string) {
     if(!emailSchema.safeParse(email).success) {
@@ -46,7 +45,7 @@ export class UserService {
     if (user) {
       throw EXCEPTIONS.EMAIL_ALREADY_BOUND;
     }
-    let code = await this.redisService.get(email);
+    let code = await this.verificationCodeService.getCode(email);
     if (code) {
       throw EXCEPTIONS.VERIFY_CODE_SEND_TOO_FREQUENTLY;
     }
@@ -56,7 +55,7 @@ export class UserService {
       .padStart(6, '0');
     await this.emailService.sendVerificationCode(email, code);
     // 缓存验证码，有效期为 5 分钟
-    await this.redisService.set(email, code, 'EX', 5 * 60);
+    await this.verificationCodeService.setCode(email, code);
   }
   async login(body: UserLoginInterface) {
     // 检查用户是否存在
@@ -84,7 +83,7 @@ export class UserService {
       throw EXCEPTIONS.EMAIL_ALREADY_BOUND;
     }
     // 检查验证码
-    const code = await this.redisService.get(body.email);
+    const code = await this.verificationCodeService.getCode(body.email);
 
     if (code !== body.verifyCode) {
       throw EXCEPTIONS.VERIFY_CODE_ERROR;

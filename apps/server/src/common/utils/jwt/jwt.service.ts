@@ -82,6 +82,7 @@ export class JwtUtils {
     // 注意： 这里实际会多出来iat和exp字段导致新签发失败，所以需要过滤
     return this.generateTokenPair({
       uid: payload.uid,
+      username: payload.username,
       userType: payload.userType,
       type: payload.type,
     });

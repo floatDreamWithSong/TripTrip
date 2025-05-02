@@ -30,9 +30,10 @@ export class UserService {
       },
     });
   }
-  private generateTokenPair(uid: number, userType: number) {
+  private generateTokenPair(uid: number, userType: number, username: string) {
     return this.jwtUtils.generateTokenPair({
       uid: uid,
+      username: username,
       userType: userType,
       type: ''
     })    
@@ -72,7 +73,7 @@ export class UserService {
       throw EXCEPTIONS.PASSWORD_ERROR;
     }
     // 生成 token
-    return this.generateTokenPair(user.uid, user.userType);
+    return this.generateTokenPair(user.uid, user.userType, user.username);
   }
   async register(body: UserRegisterInterface) {
     // 检查邮箱格式
@@ -98,6 +99,6 @@ export class UserService {
       },
     });
     // 生成 token
-    return this.generateTokenPair(newUser.uid, newUser.userType);
+    return this.generateTokenPair(newUser.uid, newUser.userType, newUser.username);
   }
 }

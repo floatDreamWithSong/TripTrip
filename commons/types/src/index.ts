@@ -1,2 +1,2 @@
 export * from './jwt'
-export * from './wechat'
+export * from './user'

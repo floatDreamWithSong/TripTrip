@@ -48,7 +48,7 @@ export class EmailService implements OnModuleInit {
    */
   public async sendVerificationCode(to: string, code: string) {
     this.logger.log(`Sending verification code to ${to} with code ${code}...`);
-    const subject = 'WonderLand';
+    const subject = 'TripTrip';
     // 使用模板并替换验证码
     const content = this.verificationTemplate.replace('${code}', code);
 

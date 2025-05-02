@@ -13,15 +13,54 @@ datasource db {
 
 model User {
   uid          Int   @id @default(autoincrement())
-  openId       String @unique
+  email        String @unique
+  username     String @unique
+  password     String
   gender       Int   @default(0) // 0: 未知, 1: 男, 2: 女
-  phone        String @unique
-  username     String
   avatar       String
-  userType     Int      @default(0) // 0: 游客, 1: 私域认证用户
-  email        String?
-  privateId    String?  @map("private_id")
+  userType     Int      @default(0) // 0: 游客, 1: 审核员, 2: 管理员
   registerTime DateTime @default(now()) @map("register_time")
 
   @@map("users")
+  Passage Passage[]
+}
+
+model Passage {
+  pid          Int    @id @default(autoincrement())
+  title        String
+  content      String
+  authorId     Int
+  lastEditTime DateTime @default(now()) @map("last_edit_time")
+  publishTime   DateTime @default(now()) @map("publish_time")
+  videoUrl     String? @map("video_url")
+  status       Int     @default(0) // 0: 待审核, 1: 已通过, 2: 未通过
+
+  author       User   @relation(fields: [authorId], references: [uid])
+  PassageImage PassageImage[]
+  tags         Tag[]  @relation("PassageToTag")
+
+  PassageToTag PassageToTag[]
+}
+
+model PassageImage {
+  pid Int @id @default(autoincrement())
+  passage Passage @relation(fields: [pid], references: [pid])
+  url String
+}
+
+model Tag {
+  tid   Int     @id @default(autoincrement())
+  name  String  @unique
+  passages Passage[] @relation("PassageToTag")
+
+  PassageToTag PassageToTag[]
+}
+
+model PassageToTag { // 多对多关系，需要创建一个中间表
+  passageId Int
+  tagId     Int
+  passage   Passage @relation(fields: [passageId], references: [pid])
+  tag       Tag     @relation(fields: [tagId], references: [tid])
+
+  @@id([passageId, tagId])
 }

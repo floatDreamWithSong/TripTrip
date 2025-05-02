@@ -61,6 +61,8 @@ export class Configurations implements OnModuleInit {
     Configurations.REDIS_PASSWORD = this.configService.getOrThrow<string>('REDIS_PASSWORD');
     Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
     console.log('Configurations.BUCKET', Configurations.COS_BUCKET);
+    console.log('access token expiration time', Configurations.ACCESS_TOKEN_EXPIRATION_TIME);
+    console.log('refresh token expiration time', Configurations.REFRESH_TOKEN_EXPIRATION_TIME);
     // 对于HTTP_TIMEOUT和HTTP_MAX_REDIRECTS这类有默认值的配置可以保持原样
   }
 

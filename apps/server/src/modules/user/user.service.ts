@@ -35,7 +35,6 @@ export class UserService {
     return this.jwtUtils.generateTokenPair({
       uid: uid,
       userType: userType,
-      iat: Date.now(),
       type: ''
     })    
   }

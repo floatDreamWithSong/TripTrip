@@ -79,6 +79,11 @@ export class JwtUtils {
 
   refreshTokens(refreshToken: string): TokenPair {
     const payload = this.verifyRefreshToken(refreshToken);
-    return this.generateTokenPair(payload);
+    // 注意： 这里实际会多出来iat和exp字段导致新签发失败，所以需要过滤
+    return this.generateTokenPair({
+      uid: payload.uid,
+      userType: payload.userType,
+      type: payload.type,
+    });
   }
 }

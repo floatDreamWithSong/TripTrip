@@ -60,6 +60,9 @@ pnpm build:server
 # 构建公共库
 pnpm build:types
 pnpm build:utils
+
+# 构建所有共享子包
+pnpm build:commons
 ```
 
 ### 代码检查与格式化
@@ -76,9 +79,9 @@ pnpm format
 
 ```bash
 # 生成Prisma客户端
-pnpm server:prisma:generate
+pnpm prisma:generate
 
 # 开发环境数据库迁移
-pnpm server:prisma:migrate:dev
+pnpm prisma:migrate:dev
 
 ```

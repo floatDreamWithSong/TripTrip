@@ -14,6 +14,8 @@
 
     "dev": "pnpm -r --parallel run dev",
 
+    "build:commons": "pnpm -F @triptrip/types run build && pnpm -F @triptrip/utils run build",
+
     "build": "pnpm -r --parallel run build",
     "build:types": "pnpm -F @triptrip/types run build",
     "build:utils": "pnpm -F @triptrip/utils run build",
@@ -32,10 +34,10 @@
     "format:server": "pnpm -F @triptrip/server run format",
     "format:user": "pnpm -F @triptrip/user run format",
 
-    "server:prisma:generate": "pnpm -F @triptrip/server run prisma:generate",
-    "server:prisma:migrate:dev": "pnpm -F @triptrip/server run prisma:migrate:dev",
-    "server:prisma:migrate:deploy": "pnpm -F @triptrip/server run prisma:migrate:deploy",
-    "server:prisma:db:push": "pnpm -F @triptrip/server run prisma:db:push"
+    "prisma:generate": "pnpm -F @triptrip/server run prisma:generate",
+    "prisma:migrate:dev": "pnpm -F @triptrip/server run prisma:migrate:dev",
+    "prisma:migrate:deploy": "pnpm -F @triptrip/server run prisma:migrate:deploy",
+    "prisma:db:push": "pnpm -F @triptrip/server run prisma:db:push"
   },
   "workspaces": [
     "packages/*",

@@ -45,7 +45,6 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.1.5",
     "@prisma/client": "^6.6.0",
-    "@triptrip/types": "workspace:^",
     "@triptrip/utils": "workspace:^",
     "@types/nodemailer": "^6.4.17",
     "axios": "^1.8.4",

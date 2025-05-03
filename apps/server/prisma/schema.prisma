@@ -34,7 +34,9 @@ model Passage {
   publishTime   DateTime @default(now()) @map("publish_time")
   videoUrl     String? @map("video_url")
   status       Int     @default(0) // 0: 待审核, 1: 已通过, 2: 未通过
-
+  reason       String?
+  views        Int     @default(0)
+  likes        Int     @default(0)
   author       User   @relation(fields: [authorId], references: [uid])
   PassageImage PassageImage[]
   tags         Tag[]  @relation("PassageToTag")
@@ -43,7 +45,8 @@ model Passage {
 }
 
 model PassageImage {
-  pid Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+  pid Int
   passage Passage @relation(fields: [pid], references: [pid])
   url String
 }

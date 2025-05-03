@@ -5,8 +5,8 @@ import { EmailService } from 'src/common/utils/email/email.service';
 import { VerificationCodeService } from 'src/modules/user/verification-code.service';
 import { EXCEPTIONS } from 'src/common/exceptions';
 import { JwtUtils } from 'src/common/utils/jwt/jwt.service';
-import { emailSchema } from '@triptrip/utils';
-import { UserLoginInterface, UserRegisterInterface } from '@triptrip/types';
+import { emailSchema, PASSAGE_STATUS, UserLogin, UserRegister } from '@triptrip/utils';
+import { USER_TYPE } from '@triptrip/utils';
 
 @Injectable()
 export class UserService {
@@ -18,7 +18,32 @@ export class UserService {
     private readonly jwtUtils: JwtUtils,
     private readonly verificationCodeService: VerificationCodeService,
   ) {}
+  async info(uid: number) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        uid: uid,
+      },
+      select: {
+        username: true,
+        avatar: true,
+        userType: true,
+        email: true,
+        gender: true,
+        registerTime: true,
+        Passage:{
+          where: {
+            authorId: uid,
+            status: PASSAGE_STATUS.APPROVED
+          },
+          select:{
+            _count: true,
+          }
+        }
+      },
+    });
+  }
   private checkEmail(email: string) {
+    this.logger.debug(`checking email: ${email}`);
     if(!emailSchema.safeParse(email).success) {
       throw EXCEPTIONS.INVALID_EMAIL;
     }
@@ -35,7 +60,7 @@ export class UserService {
       uid: uid,
       username: username,
       userType: userType,
-      type: ''
+      type: USER_TYPE.USER,
     })    
   }
   async sendVerifyCode(email: string): Promise<void> {
@@ -58,7 +83,7 @@ export class UserService {
     // 缓存验证码，有效期为 5 分钟
     await this.verificationCodeService.setCode(email, code);
   }
-  async login(body: UserLoginInterface) {
+  async login(body: UserLogin) {
     // 检查用户是否存在
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -75,7 +100,7 @@ export class UserService {
     // 生成 token
     return this.generateTokenPair(user.uid, user.userType, user.username);
   }
-  async register(body: UserRegisterInterface) {
+  async register(body: UserRegister) {
     // 检查邮箱格式
     this.checkEmail(body.email);
     // 检查邮箱是否已绑定

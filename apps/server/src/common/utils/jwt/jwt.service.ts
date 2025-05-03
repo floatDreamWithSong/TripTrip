@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { Configurations } from 'src/common/config';
-import { JwtPayload } from '@triptrip/types';
+import { JwtPayload } from '@triptrip/utils';
 import { JwtService } from '@nestjs/jwt';
 
 export interface TokenPair {

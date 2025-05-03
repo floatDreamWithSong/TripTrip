@@ -6,8 +6,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { USER_TYPE, UserTypeValidator } from '../decorators/user-type.decorator';
-import { JwtPayload } from '@triptrip/types';
+import { META_USER_TYPE, UserTypeValidator } from '../decorators/user-type.decorator';
+import { JwtPayload } from '@triptrip/utils';
 
 @Injectable()
 export class UserTypeGuard implements CanActivate {
@@ -15,7 +15,7 @@ export class UserTypeGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // 获取装饰器中的验证函数
-    const validator = this.reflector.get<UserTypeValidator>(USER_TYPE, context.getHandler());
+    const validator = this.reflector.get<UserTypeValidator>(META_USER_TYPE, context.getHandler());
 
     // 如果没有设置验证函数，则默认允许访问
     if (!validator) {

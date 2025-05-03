@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { JwtPayload, PASSAGE_STATUS, USER_TYPE } from "@triptrip/utils";
+import { EXCEPTIONS } from "src/common/exceptions";
 import { CosService } from "src/common/utils/cos/cos.service";
 import { PrismaService } from "src/common/utils/prisma/prisma.service";
 
@@ -82,11 +83,11 @@ export class PassageService {
             where: { pid: passageId }
         });
         if (!passage) {
-            throw new Error('文章不存在');
+            throw EXCEPTIONS.PASSAGE_NOT_FOUND
         }
         // 检查用户是否有权限删除文章
         if (user.type !== USER_TYPE.ADMIN && passage.authorId !== user.uid) {
-            throw new Error('没有权限删除文章');
+            throw EXCEPTIONS.PASSAGE_DELETE_FAILED
         }
         return this.prismaService.$transaction(async (tx) => {
             // 删除文章关联的图片

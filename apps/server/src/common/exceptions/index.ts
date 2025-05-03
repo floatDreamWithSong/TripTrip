@@ -57,6 +57,12 @@ export class UploadServerException extends ClientException {
   }
 }
 
+export class PassageException extends ClientException {
+  constructor(message: string, details?: any) {
+    super(`游记错误: ${message}`, false, details);
+  }
+}
+
 export const EXCEPTIONS = {
   ILLEGAL_BUFFER: new BadRequestException('非法的buffer'),
   SESSION_KEY_NOT_FOUND: new NoEffectRequestException('session_key不存在'),
@@ -73,4 +79,6 @@ export const EXCEPTIONS = {
   IMAGE_SIZE_EXCEEDED: new UploadServerException('图片大小不能超过2M'),
   INVALID_VIDEO_TYPE: new UploadServerException('只允许上传视频文件(mp4,webm,ogg,avi)'),
   VIDEO_SIZE_EXCEEDED: new UploadServerException('视频大小不能超过50M'),
+  PASSAGE_NOT_FOUND: new PassageException('游记不存在'),
+  PASSAGE_DELETE_FAILED: new PassageException('游记删除失败'),
 };

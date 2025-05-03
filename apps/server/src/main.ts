@@ -20,11 +20,11 @@ async function bootstrap() {
     .useGlobalFilters(new UnauthorizedExceptionFilter())
     .useGlobalFilters(new BadRequestExceptionFilter())
     .useGlobalFilters(new ForbiddenExceptionFilter())
-    
+
   app.enableCors({
-      origin: true,
+      // origin: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: 'Content-Type, Accept',
+      // allowedHeaders: 'Content-Type, Accept',
       preflightContinue: false,
     });
 

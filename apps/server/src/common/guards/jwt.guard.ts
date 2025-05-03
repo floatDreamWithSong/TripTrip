@@ -28,6 +28,7 @@ export class JwtGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
+    if(request.method === 'OPTIONS') return true;
     const response = context.switchToHttp().getResponse<Response>();
     const accessToken = request.headers.authorization;
     const refreshToken = request.headers['x-refresh-token'] as string;

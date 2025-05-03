@@ -19,7 +19,14 @@ async function bootstrap() {
     .useGlobalFilters(new AppExceptionFilter())
     .useGlobalFilters(new UnauthorizedExceptionFilter())
     .useGlobalFilters(new BadRequestExceptionFilter())
-    .useGlobalFilters(new ForbiddenExceptionFilter());
+    .useGlobalFilters(new ForbiddenExceptionFilter())
+    
+  app.enableCors({
+      origin: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: 'Content-Type, Accept',
+      preflightContinue: false,
+    });
 
   app.useGlobalInterceptors(new TransformInterceptor());
   const port = process.env.PORT ?? 3000;

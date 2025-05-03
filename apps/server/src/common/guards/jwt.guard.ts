@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { META_IS_PUBLIC } from '../decorators/public.decorator';
 import { JwtUtils } from '../utils/jwt/jwt.service';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class JwtGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // 检查是否标记为公开接口
-    const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
+    const isPublic = this.reflector.get<boolean>(META_IS_PUBLIC, context.getHandler());
 
     if (isPublic) {
       return true;

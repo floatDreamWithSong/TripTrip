@@ -7,6 +7,7 @@ import { JwtUtilsModule } from './common/utils/jwt/jwt.module';
 import { Configurations } from './common/config';
 import { PrismaModule } from './common/utils/prisma/prisma.module';
 import { RedisCacheModule } from './common/utils/redis/redis.module';
+import { PassageModule } from './modules/passage/passage.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { RedisCacheModule } from './common/utils/redis/redis.module';
     Configurations,
     PrismaModule,
     RedisCacheModule,
+    PassageModule,
   ],
   providers: [
     {

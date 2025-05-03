@@ -58,7 +58,6 @@ pnpm build:server
 
 ```bash
 # 构建公共库
-pnpm build:types
 pnpm build:utils
 
 # 构建所有共享子包

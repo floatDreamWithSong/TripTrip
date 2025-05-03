@@ -30,10 +30,11 @@ CREATE TABLE `Passage` (
 
 -- CreateTable
 CREATE TABLE `PassageImage` (
-    `pid` INTEGER NOT NULL AUTO_INCREMENT,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `pid` INTEGER NOT NULL,
     `url` VARCHAR(191) NOT NULL,
 
-    PRIMARY KEY (`pid`)
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable

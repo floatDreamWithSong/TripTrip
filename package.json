@@ -17,7 +17,6 @@
     "build:commons": "pnpm -F @triptrip/types run build && pnpm -F @triptrip/utils run build",
 
     "build": "pnpm -r --parallel run build",
-    "build:types": "pnpm -F @triptrip/types run build",
     "build:utils": "pnpm -F @triptrip/utils run build",
     "build:admin": "pnpm -F @triptrip/admin run build",
     "build:server": "pnpm -F @triptrip/server run build:swc",

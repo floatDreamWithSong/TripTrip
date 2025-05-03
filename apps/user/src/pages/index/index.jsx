@@ -1,9 +1,12 @@
 import { View, Text } from '@tarojs/components';
-import { useLoad } from '@tarojs/taro';
+import { useLoad, redirectTo } from '@tarojs/taro';
 import './index.scss';
 
 export default function Index() {
   useLoad(() => {
+    if (process.env.NODE_ENV !== 'development') 
+      redirectTo({ url: '/pages/login/index' });
+    
     console.log('Page loaded.');
   });
 

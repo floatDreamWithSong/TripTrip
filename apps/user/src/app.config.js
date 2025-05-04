@@ -12,8 +12,8 @@ export default defineAppConfig({
     navigationBarTextStyle: 'black',
   },
   tabBar: {
-    color: '#333',
-    selectedColor: '#ea0000',
+    color: '#737373',
+    selectedColor: '#6ec1e2',
     backgroundColor: '#fff',
     list: [
       {
@@ -25,14 +25,14 @@ export default defineAppConfig({
       {
         pagePath: 'pages/addTravel/addTravel',
         text: '游记发布',
-        // iconPath: 'images/icon3.png',
-        // selectedIconPath: 'images/icon3_active.png'
+        iconPath: 'assets/unselectedAdd.png',
+        selectedIconPath: 'assets/selectedAdd.png'
       },
       {
         pagePath: 'pages/myTravels/myTravels',
         text: '我的游记',
-        // iconPath: 'images/icon2.png',
-        // selectedIconPath: 'images/icon2_active.png'
+        iconPath: 'assets/unselectedMy.png',
+        selectedIconPath: 'assets/selectedMy.png'
       }
     ],
     borderStyle: 'black'

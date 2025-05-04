@@ -148,9 +148,6 @@ importers:
       '@prisma/client':
         specifier: ^6.6.0
         version: 6.7.0(prisma@6.7.0(typescript@5.7.3))(typescript@5.7.3)
-      '@triptrip/types':
-        specifier: workspace:^
-        version: link:../../commons/types
       '@triptrip/utils':
         specifier: workspace:^
         version: link:../../commons/utils

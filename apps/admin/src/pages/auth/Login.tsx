@@ -1,16 +1,39 @@
 import { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Container, Content, Form, Button, Panel, Avatar, Dropdown, Header } from 'rsuite';
+import { useNavigate } from 'react-router-dom';
+import { Container, Content, Form, Button, Panel, Message, useToaster } from 'rsuite';
 import { gsap } from 'gsap';
 import { useThemeStore } from '../../store/theme';
 import { Moon, Sun } from 'lucide-react';
+import { UserLogin } from '@triptrip/utils';
+import { useMutation } from 'react-query';
+import { login } from '../../request/auth';
 
 const Login = () => {
   const formRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
-
+  const toaster = useToaster();
+  
   const isDarkMode = theme === 'dark';
+
+  const loginMutation = useMutation(
+    async (credentials: UserLogin) => {
+      const result = await login(credentials);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+    {
+      onSuccess: () => {
+        toaster.push(<Message type="success">登录成功</Message>);
+        navigate('/dashboard');
+      },
+      onError: (error) => {
+        toaster.push(<Message type="error">{error instanceof Error ? error.message : '登录失败'}</Message>);
+      },
+    }
+  );
 
   useEffect(() => {
     if (formRef.current) {
@@ -30,10 +53,16 @@ const Login = () => {
     }
   }, []);
 
-  const handleSubmit = () => {
-    // TODO: 实现登录逻辑
-    navigate('/dashboard');
+  const handleSubmit = (formValue: Record<string, any> | null, event?: React.FormEvent<HTMLFormElement>) => {
+    if (!formValue) return;
+    
+    const payload = {
+      username: formValue.username as string,
+      password: formValue.password as string,
+    };
+    loginMutation.mutate(payload);
   };
+
   return (
     <Container>
       <Content>
@@ -69,8 +98,9 @@ const Login = () => {
                 fontSize: '28px',
                 fontWeight: 'bold',
                 transition: 'color 0.3s ease',
+                userSelect:'none'
               }}>
-                登录
+                登录TripTrip！
               </h2>
               <div style={{
                     display:'flex',
@@ -129,6 +159,7 @@ const Login = () => {
                     appearance="primary"
                     type="submit"
                     block
+                    disabled={loginMutation.isLoading}
                     style={{
                       height: '44px',
                       fontSize: '16px',
@@ -144,7 +175,7 @@ const Login = () => {
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
-                    登录
+                    {loginMutation.isLoading ? '登录中...' : '登录'}
                   </Button>
                 </Form.Group>
               </Form>

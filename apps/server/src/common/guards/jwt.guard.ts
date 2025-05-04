@@ -54,7 +54,7 @@ export class JwtGuard implements CanActivate {
 
         // 在响应头中设置新的令牌
         response.setHeader('X-Access-Token', newAccessToken);
-        //response.setHeader('X-Refresh-Token', newRefreshToken);
+        response.setHeader('Access-Control-Expose-Headers', 'X-Access-Token');
 
         // 使用新的访问令牌验证用户
         const payload = this.jwtUtils.verifyAccessToken(newAccessToken);

@@ -12,14 +12,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { theme, toggleTheme } = useThemeStore();
 
   return (
-    <Container>
-      <Header>
+    <Container style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header style={{ flex: '0 0 auto', padding: '0 20px', borderBottom: '1px solid var(--rs-border-primary)' }}>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '0 20px',
             height: '100%',
           }}
         >
@@ -33,14 +32,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </div>
             <Dropdown placement="bottomEnd" trigger={['click']} title={<Avatar circle />}>
-              <Dropdown.Item>设置</Dropdown.Item>
               <Dropdown.Item onClick={() => navigate('/auth/login')}>退出登录</Dropdown.Item>
             </Dropdown>
           </div>
         </div>
       </Header>
-      <Container>
-        <Sidebar>
+      <Container style={{ flex: '1 1 auto', display: 'flex', overflow: 'hidden' }}>
+        <Sidebar style={{ 
+          flex: '0 0 auto', 
+          width: '200px',
+          borderRight: '1px solid var(--rs-border-primary)',
+          padding: '20px 0'
+        }}>
           <Nav vertical appearance="subtle" activeKey={location.pathname}>
             <Nav.Item eventKey="/dashboard/statistics" onSelect={() => navigate('/dashboard/statistics')}>
               数据统计
@@ -50,7 +53,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </Nav.Item>
           </Nav>
         </Sidebar>
-        <Content>{children}</Content>
+        <Content style={{ 
+          flex: '1 1 auto',
+          overflow: 'auto',
+          padding: '20px'
+        }}>
+          {children}
+        </Content>
       </Container>
     </Container>
   );

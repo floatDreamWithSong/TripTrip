@@ -16,23 +16,24 @@ const Statistics = () => {
   return (
     <div style={{ padding: '20px' }}>
       <Stack spacing={20} direction="column" alignItems="stretch">
-        <Stack spacing={20}>
-          <Panel bordered style={{ flex: 1 }}>
+        <div style={{ width: '100%', display:'flex',flexDirection:'row', gap:'1rem' }}>
+          <Panel bordered style={{ flex: '1' }}>
             <h5>总申核数</h5>
             <h2>1,248</h2>
-            <small style={{ color: 'green' }}>较上周 +12.5%</small>
           </Panel>
-          <Panel bordered style={{ flex: 1 }}>
+          <Panel bordered style={{ flex: '1' }}>
             <h5>通过率</h5>
             <h2>78.3%</h2>
-            <small style={{ color: 'green' }}>较上周 +2.1%</small>
           </Panel>
-          <Panel bordered style={{ flex: 1 }}>
-            <h5>平均审核时间</h5>
-            <h2>1.4 小时</h2>
-            <small style={{ color: 'blue' }}>较上周 -15分钟</small>
+          <Panel bordered style={{ flex: '1' }}>
+            <h5>待处理数</h5>
+            <h2>100</h2>
           </Panel>
-        </Stack>
+          <Panel bordered style={{ flex: '1' }}>
+            <h5>今日指标</h5>
+            <h2>34/50</h2>
+          </Panel>
+        </div>
 
         <Panel header="每日审核数据" bordered>
           <ResponsiveContainer width="100%" height={400}>

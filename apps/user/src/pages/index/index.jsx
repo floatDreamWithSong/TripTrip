@@ -3,11 +3,11 @@ import { View, Image, Text, Input } from '@tarojs/components';
 import './index.scss';
 
 // 添加随机高度
-const getRandomHeight = () => 300 + Math.floor(Math.random() * 300);
+const getRandomHeight = () => 150+ Math.floor(Math.random() * 200);
 
 const mockTravels = Array.from({ length: 20 }, (_, i) => ({
   id: i,
-  title: `游记标题 ${i + 1} ${'这是一个很长的标题需要换行显示'.repeat(Math.ceil(Math.random() * 2))}`,
+  title: `游记标题 ${i + 1} ${'这是一个很长的标题'.repeat(Math.ceil(Math.random() * 2))}`,
   images: [`https://picsum.photos/seed/${i}/400/300`],
   user: {
     nickname: `用户${i + 1}`,
@@ -74,13 +74,13 @@ export default function Index() {
     className="travel-card"
     key={travel.id}
     onClick={() => toDetail(travel.id)}
-    style={{ height: `${travel.imageHeight + 120}rpx` }}
+    style={{ height: `${travel.imageHeight }rpx` }}
   >
     <Image
       src={travel.images[0]}
       className="travel-image"
       mode="aspectFill"
-      style={{ height: `${travel.imageHeight}rpx !important` }}
+      style={{ height: `${travel.imageHeight}px ` }}
     />
                 <View className="card-content">
                   <Text className="travel-title">{travel.title}</Text>

@@ -28,6 +28,7 @@ export class JwtGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
+    if(request.method === 'OPTIONS') return true;
     const response = context.switchToHttp().getResponse<Response>();
     const accessToken = request.headers.authorization;
     const refreshToken = request.headers['x-refresh-token'] as string;
@@ -52,8 +53,8 @@ export class JwtGuard implements CanActivate {
           this.jwtUtils.refreshTokens(refreshToken);
 
         // 在响应头中设置新的令牌
-        response.setHeader('Authorization', newAccessToken);
-        response.setHeader('X-Refresh-Token', newRefreshToken);
+        response.setHeader('X-Access-Token', newAccessToken);
+        //response.setHeader('X-Refresh-Token', newRefreshToken);
 
         // 使用新的访问令牌验证用户
         const payload = this.jwtUtils.verifyAccessToken(newAccessToken);

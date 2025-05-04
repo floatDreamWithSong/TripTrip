@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
+import { getPendingList } from '@/request/auth';
 
 interface Review {
   id: number;
@@ -100,6 +101,7 @@ const ReviewList = () => {
 
     try {
       // 模拟API请求
+      getPendingList(1,10)
       await new Promise((resolve) => setTimeout(resolve, 1000));
       const newReviews: Review[] = Array.from({ length: 10 }, (_, i) => ({
         id: Math.random()*1000000,
@@ -161,61 +163,68 @@ const ReviewList = () => {
   const handleReview = async (approved: boolean) => {
     if (!selectedReview) return;
 
-      const currentIndex = reviews.findIndex(r => r.id === selectedReview.id);
-      if (currentIndex === -1) return;
+    const currentIndex = reviews.findIndex(r => r.id === selectedReview.id);
+    if (currentIndex === -1) return;
 
-      const element = listItemsRef.current[selectedReview.id];
-      if (!element) return;
+    const element = listItemsRef.current[selectedReview.id];
+    if (!element) return;
 
-      // 获取List.Item元素（父元素）
-      const listItemElement = element.closest('.rs-list-item');
-      if (!listItemElement) return;
+    // 获取List.Item元素（父元素）
+    const listItemElement = element.closest('.rs-list-item');
+    if (!listItemElement) return;
 
-      // 获取元素实际高度
-      const elementHeight = listItemElement.getBoundingClientRect().height;
-      const computedStyle = window.getComputedStyle(listItemElement);
-      const marginTop = parseFloat(computedStyle.marginTop);
-      const marginBottom = parseFloat(computedStyle.marginBottom);
-      const totalHeight = elementHeight + marginTop + marginBottom;
+    // 获取元素实际高度
+    const elementHeight = listItemElement.getBoundingClientRect().height;
+    const computedStyle = window.getComputedStyle(listItemElement);
+    const marginTop = parseFloat(computedStyle.marginTop);
+    const marginBottom = parseFloat(computedStyle.marginBottom);
+    const totalHeight = elementHeight + marginTop + marginBottom;
 
-      // 1. 首先执行消失动画
-      await gsap.to(element, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.3,
-        ease: "power2.in"
-      });
+    // 1. 首先执行消失动画
+    await gsap.to(element, {
+      opacity: 0,
+      scale: 0.8,
+      duration: 0.3,
+      ease: "power2.in"
+    });
 
-      // 2. 获取当前元素后面的所有元素
-      const followingElements = reviews
-        .slice(currentIndex + 1)
-        .map(r => listItemsRef.current[r.id]?.closest('.rs-list-item'))
-        .filter((el): el is HTMLElement => el !== null);
-
-      // 3. 执行上移动画
-      if (followingElements.length > 0) {
-        await gsap.to(followingElements, {
-          y: `-=${totalHeight}`,
-          duration: 0.5,
-          ease: "power2.inOut",
-          stagger: 0.05
-        });
-      }
-      console.log(reviews)
-
-      // 4. 更新状态
-      // setReviews(prev => prev.filter(review => review.id !== selectedReview.id));
+    // 2. 获取当前元素后面的所有元素
+    const followingElements = reviews
+      .slice(currentIndex + 1)
+      .map(r => listItemsRef.current[r.id]?.closest('.rs-list-item'))
+      .filter((el): el is HTMLElement => el !== null);
       
-      // 5. 重置位置
-      // gsap.set(followingElements, { clearProps: "y" });
-
       setOpen(false);
-      toaster.push(
-        <Message type="success">
-          {approved ? '已批准' : '已拒绝'} {selectedReview.title}
-        </Message>
-      );
+    // 3. 执行上移动画
+    if (followingElements.length > 0) {
+      await gsap.to(followingElements, {
+        y: `-=${totalHeight}`,
+        duration: 0.5,
+        ease: "power2.inOut",
+        stagger: 0.05
+      });
+    }
 
+    // 4. 在一个微任务中更新状态，确保动画完成
+    // 不能直接更新，react的set是异步的，导致直接使用会造成闪烁
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        setReviews(prev => prev.filter(review => review.id !== selectedReview.id));
+        resolve(null);
+      });
+    });
+
+    // 5. 等待一帧以确保状态更新完成
+    await new Promise(resolve => requestAnimationFrame(resolve));
+
+    // 6. 重置位置
+    gsap.set(followingElements, { clearProps: "y" });
+
+    toaster.push(
+      <Message type="success">
+        {approved ? '已批准' : '已拒绝'} {selectedReview.title}
+      </Message>
+    );
   };
 
   return (
@@ -294,7 +303,7 @@ const ReviewList = () => {
 
       {!hasMore && reviews.length > 0 && (
         <div style={{ textAlign: 'center', padding: '20px' }}>
-    <Button endIcon={<PageEnd />} onClick={resetData}> Next page </Button>
+    <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
         </div>
       )}
 

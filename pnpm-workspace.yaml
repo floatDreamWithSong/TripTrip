@@ -1,3 +1,6 @@
 packages:
-  - 'commons/*'
-  - 'apps/*'
+  - commons/*
+  - apps/*
+onlyBuiltDependencies:
+  - '@swc/core'
+  - '@tarojs/cli'

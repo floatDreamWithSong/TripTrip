@@ -126,5 +126,73 @@
     font-size: 28px;
     line-height: 40px;
     color: #7060ea;
-    background: linear-gradient(to right, #f2ecfc, #f0eefc);
+    border-radius: 20px;
+    background: linear-gradient(to right, #dfcffc, #c5baff);
+}
+
+.buttonBox {
+    width: 90%;
+    height: 12vh;
+    display: flex;
+    flex-direction: row;
+    margin: 2vh auto;
+    background-color: #f4f4f4;
+    border-radius: 35px;
+    border: 1px solid #cfcfcf;
+}
+
+.buttonItem {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    // background-color: pink;
+}
+
+.giftIcon {
+    width: 80px;
+    height: 80px;
+    background: url('../../assets/gift.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 25px auto 10px;
+}
+
+.buttonTitle {
+    margin: 0 auto;
+    font-weight: bold;
+    font-size: 28px;
+}
+
+.writeIcon {
+    width: 80px;
+    height: 80px;
+    background: url('../../assets/writeBox.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 25px auto 10px;
+}
+
+.travelListTitle {
+    display: flex;
+    flex-direction: row;
+}
+
+.travelListClass {
+    width: 120px;
+    height: 50px;
+    margin: 5px 15px;
+    background-color: #f3f3f3;
+    font-size: 28px;
+    line-height: 50px;
+    text-align: center;
+    border-radius: 25px;
+    transition: all 0.5s ease;
+}
+
+.travelListTitle > .active {
+    background-color: #d8e9fc;
+    transition: all 0.5s ease;
 }

@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, Input } from '@tarojs/components';
 import './index.scss';
+import TravelCard from '../../components/TravelCard';
 
 // 添加随机高度
-const getRandomHeight = () => 150+ Math.floor(Math.random() * 200);
+const getRandomHeight = () => 150 + Math.floor(Math.random() * 200);
 
 const mockTravels = Array.from({ length: 20 }, (_, i) => ({
   id: i,
@@ -48,9 +49,9 @@ export default function Index() {
     setColumns(distributeItems(filtered));
   }, [searchText, distributeItems]);
 
-  const toDetail = (id) => {
-    console.log('跳转到详情页', id);
-  };
+  // const toDetail = (id) => {
+  //   console.log('跳转到详情页', id);
+  // };
 
   const handleSearch = (e) => {
     setSearchText(e.detail.value);
@@ -66,22 +67,22 @@ export default function Index() {
         />
       </View>
 
-      <View className="masonry">
+      {/* <View className="masonry">
         {columns.map((column, colIndex) => (
           <View className="column" key={`col-${colIndex}`}>
-           {column.map((travel) => (
-  <View
-    className="travel-card"
-    key={travel.id}
-    onClick={() => toDetail(travel.id)}
-    style={{ height: `${travel.imageHeight }rpx` }}
-  >
-    <Image
-      src={travel.images[0]}
-      className="travel-image"
-      mode="aspectFill"
-      style={{ height: `${travel.imageHeight}px ` }}
-    />
+            {column.map((travel) => (
+              <View
+                className="travel-card"
+                key={travel.id}
+                onClick={() => toDetail(travel.id)}
+                style={{ height: `${travel.imageHeight}rpx` }}
+              >
+                <Image
+                  src={travel.images[0]}
+                  className="travel-image"
+                  mode="aspectFill"
+                  style={{ height: `${travel.imageHeight}px ` }}
+                />
                 <View className="card-content">
                   <Text className="travel-title">{travel.title}</Text>
                   <View className="user-info">
@@ -94,6 +95,15 @@ export default function Index() {
                   </View>
                 </View>
               </View>
+            ))}
+          </View>
+        ))}
+      </View> */}
+      <View className="masonry">
+        {columns.map((column, colIndex) => (
+          <View className="column" key={`col-${colIndex}`}>
+            {column.map((item) => (
+              <TravelCard key={item.id} travel={item} />
             ))}
           </View>
         ))}

@@ -193,6 +193,43 @@
 }
 
 .travelListTitle > .active {
+    color: #3b75db;
     background-color: #d8e9fc;
     transition: all 0.5s ease;
+}
+
+.masonry {
+    width: 95%;
+    margin: 20px auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 20rpx;
+}
+
+.addTravelButton {
+    width: 120px;
+    height: 120px;
+    position: fixed;
+    bottom: 130px;
+    right: 30px;
+    border-radius: 60px;
+    background: linear-gradient(135deg, #71cec4, #528af8);
+    color: #fff;
+    // text-align: center;
+    // line-height: 110px;
+    // font-size: 100px;
+    // font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.addTravelIcon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+    background-image: url('../../assets/addIcon.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }

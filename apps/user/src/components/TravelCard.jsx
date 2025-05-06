@@ -21,7 +21,7 @@ export default function TravelCard({ travel, onClick }) {
         <Text className="travel-title">{travel.title}</Text>
         <View className="user-info">
           <Image
-            src={travel.useravatar}
+            src={travel.avatar}
             className="avatar"
             mode="aspectFill"
           />

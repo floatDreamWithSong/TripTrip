@@ -1,0 +1,152 @@
+.travel-detail-container {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  position: relative;
+  padding-bottom: 120px;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 150px;
+    padding: 0 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    &-left {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    .author-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-left: 15px;
+    }
+
+    .author-name {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin-left: 15px;
+    }
+
+    &-right {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      .follow-btn {
+        width: 100px;
+        height: 40px;
+        background-color: #fff;
+        border: 1px solid #b9b9b9;
+        border-radius: 30px;
+        padding: 8px 10px;
+        font-size: 24px;
+        display: flex;
+        justify-content: center;
+        margin-right: 20px;
+      }
+      img{
+        margin-right: 20px;
+      }
+    }
+  }
+
+
+  .swiper-container {
+    width: 100%;
+    height: 1000px;
+    .swiper-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .content-container {
+    padding: 30px 20px;
+    padding-bottom: 120px;
+
+    .content-title {
+      font-size: 40px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .content-text {
+      white-space: pre-line;
+      font-size: 28px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    height: 100px;
+    background-color: #fff;
+    opacity: 1;
+    border-top: 1px solid #eee;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+
+
+
+    .comment-input {
+      width: 300px;
+      height: 60px;
+      background-color: #f4f8fb;
+      border-radius: 30px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+
+      .input {
+        width: 100%;
+        height: 60px;
+        font-size: 24px;
+        line-height: normal;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        background: transparent;
+        border: none;
+      }
+
+    }
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+
+      &.active {
+        color: #ff4d4f;
+      }
+
+      .count {
+        font-size: 20px;
+        color: #666;
+        margin-top: 5px;
+      }
+    }
+  }
+
+}

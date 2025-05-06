@@ -33,6 +33,7 @@ export interface PendingPassage {
   status: number;
   views: number;
   likes: number;
+  content: string;
   author: PassageAuthor;
   PassageImage: PassageImage[];
   PassageToTag: PassageToTag[];

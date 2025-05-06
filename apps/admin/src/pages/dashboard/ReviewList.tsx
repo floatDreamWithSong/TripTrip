@@ -1,15 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
+import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
 import { getPendingList, PendingPassage } from '@/request/review';
 import { useQuery } from 'react-query';
+import ReactPlayer from 'react-player';
 
 interface Review {
   id: number;
   title: string;
   author: string;
   image: string;
+  images: string[];
+  video?: string;
+  content: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -26,6 +30,7 @@ const ReviewList = () => {
   const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
   const [imageLoaded, setImageLoaded] = useState<{[key: number]: boolean}>({});
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['pendingList', page],
@@ -36,11 +41,14 @@ const ReviewList = () => {
   // 数据转换和状态更新
   useEffect(() => {
     if (data?.data) {
-      const newReviews = data.data.map((passage: { pid: any; title: any; author: { username: any; }; PassageImage: { url: any; }[]; PassageToTag: any[]; }) => ({
+      const newReviews = data.data.map((passage: PendingPassage) => ({
         id: passage.pid,
         title: passage.title,
         author: passage.author.username,
         image: passage.PassageImage[0]?.url || '',
+        images: passage.PassageImage.map(img => img.url),
+        video: passage.videoUrl,
+        content: passage.content,
         description: passage.PassageToTag.map(pt => pt.tag.name).join(', '),
         status: 'pending',
       }));
@@ -278,41 +286,68 @@ const ReviewList = () => {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)}>
+      <Modal size="lg" open={open} onClose={() => setOpen(false)}>
         <Modal.Header>
           <Modal.Title>{selectedReview?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Stack direction="column" spacing={20}>
-            <div style={{ position: 'relative', width: '100%', maxHeight: 400 }}>
-              {selectedReview && !imageLoaded[selectedReview.id] && (
-                <Placeholder.Graph active style={{ width: '100%', height: 400 }} />
-              )}
-              <img
-                src={selectedReview?.image}
-                alt={selectedReview?.title}
-                style={{
-                  width: '100%',
-                  maxHeight: 400,
-                  objectFit: 'cover',
-                  display: selectedReview && imageLoaded[selectedReview.id] ? 'block' : 'none'
-                }}
-                onLoad={() => selectedReview && setImageLoaded(prev => ({ ...prev, [selectedReview.id]: true }))}
-              />
+            <div style={{ position: 'relative', width: '100%', maxHeight: 500 }}>
+              <Carousel
+                autoplay={false}
+                activeIndex={activeIndex}
+                onSelect={index => setActiveIndex(index)}
+                style={{ borderRadius: '8px', overflow: 'hidden' }}
+              >
+                {selectedReview?.video && (
+                  <div style={{ width: '100%', height: 500, background: '#000' }}>
+                    <ReactPlayer
+                      url={selectedReview.video}
+                      width="100%"
+                      height="100%"
+                      controls
+                      playing={activeIndex === 0}
+                    />
+                  </div>
+                )}
+                {selectedReview?.images.map((image, index) => (
+                  <div key={index} style={{ height: 500 }}>
+                    {!imageLoaded[selectedReview.id] && (
+                      <Placeholder.Graph active style={{ width: '100%', height: 500 }} />
+                    )}
+                    <img
+                      src={image}
+                      alt={`${selectedReview.title} - ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        background: '#f5f5f5',
+                        display: imageLoaded[selectedReview.id] ? 'block' : 'none'
+                      }}
+                      onLoad={() => selectedReview && setImageLoaded(prev => ({ ...prev, [selectedReview.id]: true }))}
+                    />
+                  </div>
+                ))}
+              </Carousel>
             </div>
             {selectedReview && !imageLoaded[selectedReview.id] ? (
-              <Placeholder.Paragraph rows={4} active style={{width:'100px', height:'20px'}} />
+              <Placeholder.Paragraph rows={4} active style={{width:'100%'}} />
             ) : (
-              <>
+              <Stack direction="column" spacing={16}>
                 <div>
-                  <h6>作者</h6>
+                  <h6 style={{ marginBottom: '8px' }}>作者</h6>
                   <p>{selectedReview?.author}</p>
                 </div>
                 <div>
-                  <h6>标签</h6>
+                  <h6 style={{ marginBottom: '8px' }}>标签</h6>
                   <p>{selectedReview?.description}</p>
                 </div>
-              </>
+                <div>
+                  <h6 style={{ marginBottom: '8px' }}>内容</h6>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedReview?.content}</p>
+                </div>
+              </Stack>
             )}
           </Stack>
         </Modal.Body>

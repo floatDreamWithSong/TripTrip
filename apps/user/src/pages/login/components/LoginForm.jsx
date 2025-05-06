@@ -1,8 +1,9 @@
-import { View, Input, Button, Text, Image } from '@tarojs/components';
+import { View, Input, Button, Text } from '@tarojs/components';
 import { useState } from 'react';
-import { login } from '../../../utils/request';
+import { getUserInfo, login } from '../../../utils/request';
 import Taro from '@tarojs/taro';
 import '../index.scss';
+import { formErrorToaster } from '../../../utils/error';
 
 const LoginForm = ({ onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
@@ -17,41 +18,39 @@ const LoginForm = ({ onSwitchToRegister }) => {
       });
       return;
     }
+    login(username, password)
+      .then(() => {
+        Taro.showToast({
+          title: '登录成功',
+          icon: 'success'
+        });
+        Taro.navigateTo({
+          url: 'pages/index/index'
+        })
+      })
+      .catch(formErrorToaster)
 
-    try {
-      const res = await login(username, password);
-      Taro.showToast({
-        title: '登录成功',
-        icon: 'success'
-      });
-      // 处理登录成功后的逻辑
-    } catch (error) {
-      Taro.showToast({
-        title: '登录失败',
-        icon: 'none'
-      });
-    }
   };
 
   return (
     <View className="login-form">
       <View className="form-header">
-        <Text className="title">欢迎回来</Text>
+        <Text className="title">TripTrip</Text>
         <Text className="subtitle">请登录您的账号</Text>
       </View>
-      
+
       <View className="input-group">
-        <Input 
+        <Input
           className="input-field"
-          type="text" 
-          placeholder="请输入用户名" 
+          type="text"
+          placeholder="用户名"
           value={username}
           onInput={(e) => setUsername(e.detail.value)}
         />
-        <Input 
+        <Input
           className="input-field"
-          type="password" 
-          placeholder="请输入密码" 
+          type="password"
+          placeholder="密码"
           value={password}
           onInput={(e) => setPassword(e.detail.value)}
         />

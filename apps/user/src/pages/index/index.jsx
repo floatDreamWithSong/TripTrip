@@ -17,11 +17,9 @@ const mockTravels = Array.from({ length: 20 }, (_, i) => ({
   // 为每张图片预先分配随机高度
   imageHeight: getRandomHeight()
 }));
-
 export default function Index() {
   const [columns, setColumns] = useState([[], []]);
   const [searchText, setSearchText] = useState('');
-
 
   // 瀑布流分列算法（使用预分配的imageHeight）
   const distributeItems = useCallback((items) => {

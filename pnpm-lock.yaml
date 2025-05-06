@@ -332,6 +332,9 @@ importers:
       react-dom:
         specifier: ^18.0.0
         version: 18.3.1(react@18.3.1)
+      zustand:
+        specifier: ^5.0.4
+        version: 5.0.4(@types/react@18.3.20)(immer@10.1.1)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1))
     devDependencies:
       '@babel/core':
         specifier: ^7.24.4
@@ -19224,6 +19227,11 @@ snapshots:
 
   url-to-options@1.0.1: {}
 
+  use-sync-external-store@1.5.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+    optional: true
+
   use-sync-external-store@1.5.0(react@19.1.0):
     dependencies:
       react: 19.1.0
@@ -19656,6 +19664,13 @@ snapshots:
       type-fest: 2.19.0
 
   zod@3.24.3: {}
+
+  zustand@5.0.4(@types/react@18.3.20)(immer@10.1.1)(react@18.3.1)(use-sync-external-store@1.5.0(react@18.3.1)):
+    optionalDependencies:
+      '@types/react': 18.3.20
+      immer: 10.1.1
+      react: 18.3.1
+      use-sync-external-store: 1.5.0(react@18.3.1)
 
   zustand@5.0.4(@types/react@19.1.2)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
     optionalDependencies:

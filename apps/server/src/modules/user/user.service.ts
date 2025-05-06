@@ -19,7 +19,7 @@ export class UserService {
     private readonly verificationCodeService: VerificationCodeService,
   ) {}
   async info(uid: number) {
-    return await this.prismaService.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: {
         uid: uid,
       },
@@ -30,17 +30,18 @@ export class UserService {
         email: true,
         gender: true,
         registerTime: true,
-        Passage:{
-          where: {
-            authorId: uid,
-            status: PASSAGE_STATUS.APPROVED
-          },
+        _count:{
           select:{
-            _count: true,
+            Passage: true
           }
         }
       },
     });
+    console.log(user)
+    return {
+      ...user,
+      uid: uid
+    }
   }
   private checkEmail(email: string) {
     this.logger.debug(`checking email: ${email}`);
@@ -98,7 +99,10 @@ export class UserService {
       throw EXCEPTIONS.PASSWORD_ERROR;
     }
     // 生成 token
-    return this.generateTokenPair(user.uid, user.userType, user.username);
+    return {
+      ...this.generateTokenPair(user.uid, user.userType, user.username),
+      info: await this.info(user.uid)
+    }
   }
   async register(body: UserRegister) {
     // 检查邮箱格式
@@ -124,6 +128,9 @@ export class UserService {
       },
     });
     // 生成 token
-    return this.generateTokenPair(newUser.uid, newUser.userType, newUser.username);
+    return {
+      ...this.generateTokenPair(newUser.uid, newUser.userType, newUser.username),
+      info: await this.info(newUser.uid)
+    }
   }
 }

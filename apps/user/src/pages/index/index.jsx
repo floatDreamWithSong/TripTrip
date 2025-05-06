@@ -15,7 +15,6 @@ const mockTravels = Array.from({ length: 20 }, (_, i) => ({
   avatar: `https://picsum.photos/seed/${i+1}/100/100`,
   imageHeight: getRandomHeight()
 }));
-
 export default function Index() {
   const [columns, setColumns] = useState([[], []]);
   const [searchText, setSearchText] = useState('');

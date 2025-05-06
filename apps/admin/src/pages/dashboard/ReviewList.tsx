@@ -1,22 +1,27 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
+import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
-import { getPendingList } from '@/request/auth';
+import { getPendingList, PendingPassage, putReviewStatus } from '@/request/review';
+import { useQuery } from 'react-query';
+import ReactPlayer from 'react-player';
+import { PASSAGE_STATUS } from '@triptrip/utils';
 
 interface Review {
   id: number;
   title: string;
   author: string;
   image: string;
+  images: string[];
+  video?: string;
+  content: string;
   description: string;
   status: 'pending' | 'approved' | 'rejected';
 }
 
 const ReviewList = () => {
+  const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [open, setOpen] = useState(false);
@@ -26,6 +31,38 @@ const ReviewList = () => {
   const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
   const [imageLoaded, setImageLoaded] = useState<{[key: number]: boolean}>({});
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['pendingList', page],
+    queryFn: () => getPendingList({ page, limit: 10 }),
+    keepPreviousData: true,
+  });
+
+  // 数据转换和状态更新
+  useEffect(() => {
+    if (data?.data) {
+      const newReviews = data.data.map((passage: PendingPassage) => ({
+        id: passage.pid,
+        title: passage.title,
+        author: passage.author.username,
+        image: passage.PassageImage[0]?.url || '',
+        images: passage.PassageImage.map(img => img.url),
+        video: passage.videoUrl,
+        content: passage.content,
+        description: passage.PassageToTag.map(pt => pt.tag.name).join(', '),
+        status: 'pending',
+      }));
+
+      if (page === 1) {
+        setReviews(newReviews as Review[]);
+      } else {
+        setReviews(prev => [...prev, ...newReviews] as Review[]);
+      }
+
+      setHasMore(newReviews.length === 10);
+    }
+  }, [data, page]);
 
   // 检测新增的元素并执行动画
   useEffect(() => {
@@ -63,76 +100,19 @@ const ReviewList = () => {
   }, [reviews]);
 
   // 重置数据的函数
-  const resetData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setHasMore(true);
+  const resetData = useCallback(() => {
+    setPage(1);
     setReviews([]);
     setImageLoaded({});
-    
-    try {
-      // 模拟API请求
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const newReviews: Review[] = Array.from({ length: 10 }, (_, i) => ({
-        id: Math.random()*1000000,
-        title: `作品标题 ${i}`,
-        author: `作者 ${i}`,
-        image: `https://picsum.photos/200/200?random=${Math.random()}`,
-        description: `这是作品 ${i} 的详细内容描述。这里可以包含更多关于作品的信息，例如创作背景、创作理念等。`,
-        status: 'pending',
-      }));
-
-      setReviews(newReviews);
-      setHasMore(true);
-    } catch (err) {
-      setError('加载数据失败，请稍后重试');
-      toaster.push(<Message type="error">加载失败</Message>);
-    } finally {
-      setLoading(false);
-    }
-  }, [toaster]);
-
-  // 模拟获取数据
-  const fetchReviews = useCallback(async () => {
-    if (loading || !hasMore) return;
-    
-    setLoading(true);
-    setError(null);
-
-    try {
-      // 模拟API请求
-      getPendingList(1,10)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const newReviews: Review[] = Array.from({ length: 10 }, (_, i) => ({
-        id: Math.random()*1000000,
-        title: `作品标题 ${reviews.length + i}`,
-        author: `作者 ${reviews.length + i}`,
-        image: `https://picsum.photos/200/200?random=${reviews.length + i}`,
-        description: `这是作品 ${reviews.length + i} 的详细内容描述。这里可以包含更多关于作品的信息，例如创作背景、创作理念等。`,
-        status: 'pending',
-      }));
-
-      setReviews((prev) => [...prev, ...newReviews]);
-      setHasMore(reviews.length < 20); // 模拟数据上限
-    } catch (err) {
-      setError('加载数据失败，请稍后重试');
-      toaster.push(<Message type="error">加载失败</Message>);
-    } finally {
-      setLoading(false);
-    }
-  }, [reviews.length, loading, hasMore, toaster]);
-
-  // 初始加载
-  useEffect(() => {
-    fetchReviews();
+    setHasMore(true);
   }, []);
 
   // 设置 Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          fetchReviews();
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          setPage(prev => prev + 1);
         }
       },
       {
@@ -149,7 +129,7 @@ const ReviewList = () => {
         observerRef.current.disconnect();
       }
     };
-  }, [fetchReviews, hasMore, loading]);
+  }, [hasMore, isLoading]);
 
   // 更新观察的元素
   useEffect(() => {
@@ -180,6 +160,11 @@ const ReviewList = () => {
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
 
+    await putReviewStatus({
+      pid: selectedReview.id,
+      status: approved? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
+      reason: approved? void 0 : '审核未通过'
+    });
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,
@@ -275,7 +260,7 @@ const ReviewList = () => {
                       <>
                         <h4>{review.title}</h4>
                         <p>作者：{review.author}</p>
-                        <p>状态：{review.status}</p>
+                        <p>标签：{review.description}</p>
                       </>
                     )}
                   </Stack>
@@ -286,16 +271,16 @@ const ReviewList = () => {
         ))}
       </List>
 
-      {loading && (
+      {isLoading && (
         <div style={{ textAlign: 'center', padding: '20px' }}>
           <Loader content="加载中..." />
         </div>
       )}
 
-      {error && (
+      {isError && (
         <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
-          {error}
-          <Button appearance="link" onClick={fetchReviews}>
+          {error instanceof Error ? error.message : '加载失败'}
+          <Button appearance="link" onClick={resetData}>
             重试
           </Button>
         </div>
@@ -303,45 +288,72 @@ const ReviewList = () => {
 
       {!hasMore && reviews.length > 0 && (
         <div style={{ textAlign: 'center', padding: '20px' }}>
-    <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
+          <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)}>
+      <Modal size="lg" open={open} onClose={() => setOpen(false)}>
         <Modal.Header>
           <Modal.Title>{selectedReview?.title}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Stack direction="column" spacing={20}>
-            <div style={{ position: 'relative', width: '100%', maxHeight: 400 }}>
-              {selectedReview && !imageLoaded[selectedReview.id] && (
-                <Placeholder.Graph active style={{ width: '100%', height: 400 }} />
-              )}
-              <img
-                src={selectedReview?.image}
-                alt={selectedReview?.title}
-                style={{
-                  width: '100%',
-                  maxHeight: 400,
-                  objectFit: 'cover',
-                  display: selectedReview && imageLoaded[selectedReview.id] ? 'block' : 'none'
-                }}
-                onLoad={() => selectedReview && setImageLoaded(prev => ({ ...prev, [selectedReview.id]: true }))}
-              />
+            <div style={{ position: 'relative', width: '100%', maxHeight: 500 }}>
+              <Carousel
+                autoplay={false}
+                activeIndex={activeIndex}
+                onSelect={index => setActiveIndex(index)}
+                style={{ borderRadius: '8px', overflow: 'hidden' }}
+              >
+                {selectedReview?.video && (
+                  <div style={{ width: '100%', height: 500, background: '#000' }}>
+                    <ReactPlayer
+                      url={selectedReview.video}
+                      width="100%"
+                      height="100%"
+                      controls
+                      playing={activeIndex === 0}
+                    />
+                  </div>
+                )}
+                {selectedReview?.images.map((image, index) => (
+                  <div key={index} style={{ height: 500 }}>
+                    {!imageLoaded[selectedReview.id] && (
+                      <Placeholder.Graph active style={{ width: '100%', height: 500 }} />
+                    )}
+                    <img
+                      src={image}
+                      alt={`${selectedReview.title} - ${index + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        background: '#f5f5f5',
+                        display: imageLoaded[selectedReview.id] ? 'block' : 'none'
+                      }}
+                      onLoad={() => selectedReview && setImageLoaded(prev => ({ ...prev, [selectedReview.id]: true }))}
+                    />
+                  </div>
+                ))}
+              </Carousel>
             </div>
             {selectedReview && !imageLoaded[selectedReview.id] ? (
-              <Placeholder.Paragraph rows={4} active style={{width:'100px', height:'20px'}} />
+              <Placeholder.Paragraph rows={4} active style={{width:'100%'}} />
             ) : (
-              <>
+              <Stack direction="column" spacing={16}>
                 <div>
-                  <h6>作者</h6>
+                  <h6 style={{ marginBottom: '8px' }}>作者</h6>
                   <p>{selectedReview?.author}</p>
                 </div>
                 <div>
-                  <h6>描述</h6>
+                  <h6 style={{ marginBottom: '8px' }}>标签</h6>
                   <p>{selectedReview?.description}</p>
                 </div>
-              </>
+                <div>
+                  <h6 style={{ marginBottom: '8px' }}>内容</h6>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedReview?.content}</p>
+                </div>
+              </Stack>
             )}
           </Stack>
         </Modal.Body>

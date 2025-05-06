@@ -3,7 +3,8 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/myTravels/myTravels',
     'pages/login/index',
-    'pages/addTravel/addTravel'
+    'pages/addTravel/addTravel',
+    'pages/travelDetail/travelDetail',
   ],
   window: {
     backgroundTextStyle: 'light',

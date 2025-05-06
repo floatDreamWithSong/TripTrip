@@ -17,6 +17,7 @@
     "lucide-react": "^0.454.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-player": "^2.16.0",
     "react-query": "^3.39.3",
     "recharts": "^2.15.3",
     "rsuite": "^5.80.1"

@@ -62,9 +62,10 @@
     "@tarojs/runtime": "4.0.12",
     "@tarojs/shared": "4.0.12",
     "@tarojs/taro": "4.0.12",
-    "react-dom": "^18.0.0",
+    "@triptrip/utils": "workspace:^",
     "react": "^18.0.0",
-    "@triptrip/utils": "workspace:^"
+    "react-dom": "^18.0.0",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

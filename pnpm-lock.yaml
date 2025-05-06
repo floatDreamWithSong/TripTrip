@@ -298,10 +298,10 @@ importers:
         version: 4.0.12(@tarojs/service@4.0.12(@swc/helpers@0.5.15))(@tarojs/shared@4.0.12)
       '@tarojs/plugin-platform-h5':
         specifier: 4.0.12
-        version: 4.0.12(2zbivmuaoiphtohpyf4yte74my)
+        version: 4.0.12(1e7f6585c76e403c1c2f94685f0a901e)
       '@tarojs/plugin-platform-harmony-hybrid':
         specifier: 4.0.12
-        version: 4.0.12(mip67gthlotphoc2djvmnmikwy)
+        version: 4.0.12(93855052aeddb206c83e15896ddb7da8)
       '@tarojs/plugin-platform-jd':
         specifier: 4.0.12
         version: 4.0.12(@tarojs/service@4.0.12(@swc/helpers@0.5.15))(@tarojs/shared@4.0.12)
@@ -12182,7 +12182,7 @@ snapshots:
       - debug
       - supports-color
 
-  '@tarojs/components-advanced@4.0.12(277fbq3kkq5l7oe74tsbrkmr7i)':
+  '@tarojs/components-advanced@4.0.12(08f7240911bea51ee28b1ad4a32ef68c)':
     dependencies:
       '@tarojs/components': 4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))
       '@tarojs/runtime': 4.0.12
@@ -12229,7 +12229,7 @@ snapshots:
   '@tarojs/components@4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))':
     dependencies:
       '@stencil/core': 2.22.3
-      '@tarojs/components-advanced': 4.0.12(277fbq3kkq5l7oe74tsbrkmr7i)
+      '@tarojs/components-advanced': 4.0.12(08f7240911bea51ee28b1ad4a32ef68c)
       '@tarojs/runtime': 4.0.12
       '@tarojs/shared': 4.0.12
       '@tarojs/taro': 4.0.12(@tarojs/components@4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@tarojs/shared@4.0.12)(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))
@@ -12345,7 +12345,7 @@ snapshots:
       '@tarojs/service': 4.0.12(@swc/helpers@0.5.15)
       '@tarojs/shared': 4.0.12
 
-  '@tarojs/plugin-platform-h5@4.0.12(2zbivmuaoiphtohpyf4yte74my)':
+  '@tarojs/plugin-platform-h5@4.0.12(1e7f6585c76e403c1c2f94685f0a901e)':
     dependencies:
       '@babel/core': 7.27.1
       '@tarojs/components': 4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))
@@ -12354,7 +12354,7 @@ snapshots:
       '@tarojs/runtime': 4.0.12
       '@tarojs/service': 4.0.12(@swc/helpers@0.5.15)
       '@tarojs/shared': 4.0.12
-      '@tarojs/taro-h5': 4.0.12(5s6sw3gaoe7yoepboqukwvq6c4)
+      '@tarojs/taro-h5': 4.0.12(fa85bd6e46314dbf52ba409a83cf6475)
       babel-plugin-transform-taroapi: 4.0.12(@babel/core@7.27.1)
       change-case: 4.1.2
       lodash-es: 4.17.21
@@ -12374,18 +12374,18 @@ snapshots:
       - webpack-chain
       - webpack-dev-server
 
-  '@tarojs/plugin-platform-harmony-hybrid@4.0.12(mip67gthlotphoc2djvmnmikwy)':
+  '@tarojs/plugin-platform-harmony-hybrid@4.0.12(93855052aeddb206c83e15896ddb7da8)':
     dependencies:
       '@tarojs/api': 4.0.12(@tarojs/runtime@4.0.12)(@tarojs/shared@4.0.12)
       '@tarojs/components': 4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))
       '@tarojs/components-react': 4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(solid-js@1.9.6)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))
       '@tarojs/helper': 4.0.12(@swc/helpers@0.5.15)
-      '@tarojs/plugin-platform-h5': 4.0.12(2zbivmuaoiphtohpyf4yte74my)
+      '@tarojs/plugin-platform-h5': 4.0.12(1e7f6585c76e403c1c2f94685f0a901e)
       '@tarojs/router': 4.0.12(@tarojs/runtime@4.0.12)(@tarojs/shared@4.0.12)(@tarojs/taro@4.0.12(@tarojs/components@4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@tarojs/shared@4.0.12)(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))
       '@tarojs/runtime': 4.0.12
       '@tarojs/service': 4.0.12(@swc/helpers@0.5.15)
       '@tarojs/shared': 4.0.12
-      '@tarojs/taro-h5': 4.0.12(5s6sw3gaoe7yoepboqukwvq6c4)
+      '@tarojs/taro-h5': 4.0.12(fa85bd6e46314dbf52ba409a83cf6475)
       axios: 1.9.0
       babel-plugin-transform-taroapi: 4.0.12(@babel/core@7.27.1)
       base64-js: 1.5.1
@@ -12487,7 +12487,7 @@ snapshots:
 
   '@tarojs/shared@4.0.12': {}
 
-  '@tarojs/taro-h5@4.0.12(5s6sw3gaoe7yoepboqukwvq6c4)':
+  '@tarojs/taro-h5@4.0.12(fa85bd6e46314dbf52ba409a83cf6475)':
     dependencies:
       '@tarojs/api': 4.0.12(@tarojs/runtime@4.0.12)(@tarojs/shared@4.0.12)
       '@tarojs/components': 4.0.12(@tarojs/helper@4.0.12(@swc/helpers@0.5.15))(@types/react@18.3.20)(html-webpack-plugin@5.6.3(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(postcss@8.5.3)(react@18.3.1)(rollup@3.29.5)(webpack-chain@6.5.1)(webpack-dev-server@4.15.2(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15))))(webpack@5.91.0(@swc/core@1.3.96(@swc/helpers@0.5.15)))

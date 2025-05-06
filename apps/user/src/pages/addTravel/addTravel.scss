@@ -1,0 +1,146 @@
+.redPackage {
+    width: 95%;
+    height: 60px;
+    margin: 0 auto;
+    line-height: 60px;
+    font-size: 28px;
+    display: flex;
+    flex-direction: row;
+    color: #7a746b;
+    background: linear-gradient(135deg, #fcf6f2, #fee7d0);
+    border-radius: 20px;
+    margin-top: 80px;
+}
+
+.redPackage-icon {
+    width: 40px;
+    height: 40px;
+    margin: 10px;
+    background-image: url(../../assets/redPackage.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.redPackage-num {
+    color: #ec9238;
+}
+
+.photos-container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    min-height: 200px;
+    margin: 20px 30px;
+    // background-color: pink;
+}
+
+.uploader {
+    width: 100px;
+    height: 100px;
+    // background-color: pink;
+}
+
+.message-container {
+    margin: 10px 20px;
+    height: 550px;
+    // background-color: pink;
+}
+
+
+
+.bottom-container {
+    // height: 420px;
+    margin: 20px;
+    // background-color: #ff0000;
+}
+
+/* 标签区域 */
+.tags {
+    display: flex;
+    flex-direction: row;
+    // justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.tagButton {
+    height: 30px;
+    display: flex;
+    padding: 5px 20px;
+    align-items: center;
+    margin-right: 30px;
+    background-color: #e5edf4;
+    border-radius: 20px;
+}
+
+.tagIcon {
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+}
+
+.tag {
+    color: #666;
+    cursor: pointer;
+    font-size: 28px;
+}
+
+.tagButton.active .tag {
+    color: #1890ff;
+    /* 蓝色 */
+}
+
+/* 内容区域 */
+.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.contentSection {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    flex: 1;
+    margin-right: 10px;
+    /* 如果需要间距，可以添加 */
+}
+
+.contentSection:last-child {
+    margin-right: 0;
+    /* 最后一个子区域不需要右边距 */
+}
+
+.contentHeader {
+    display: flex;
+    align-items: center;
+}
+
+.icon {
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.contentTitle {
+    font-size: 16px;
+    color: #333;
+}
+
+.contentSubtext {
+    font-size: 14px;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* 底部复选框 */
+.checkboxSection {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.checkboxText {
+    font-size: 14px;
+    color: #666;
+    margin-left: 10px;
+    /* 确保复选框和文字之间有间距 */
+}

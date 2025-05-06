@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, Input } from '@tarojs/components';
+import { View, Input } from '@tarojs/components';
+import Taro from '@tarojs/taro';
 import './index.scss';
 import TravelCard from '../../components/TravelCard';
 
@@ -9,12 +10,9 @@ const getRandomHeight = () => 150 + Math.floor(Math.random() * 200);
 const mockTravels = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   title: `游记标题 ${i + 1} ${'这是一个很长的标题'.repeat(Math.ceil(Math.random() * 2))}`,
-  images: [`https://picsum.photos/seed/${i}/400/300`],
-  user: {
-    nickname: `用户${i + 1}`,
-    avatar: `https://i.pravatar.cc/100?img=${i + 1}`
-  },
-  // 为每张图片预先分配随机高度
+  images: [`https://picsum.photos/seed/${i+1}/400/300`],
+  username: `用户${i + 1}`,
+  avatar: `https://picsum.photos/seed/${i+1}/100/100`,
   imageHeight: getRandomHeight()
 }));
 export default function Index() {
@@ -42,17 +40,20 @@ export default function Index() {
   useEffect(() => {
     const filtered = mockTravels.filter(travel =>
       travel.title.includes(searchText) ||
-      travel.user.nickname.includes(searchText)
+      travel.username.includes(searchText)
     );
     setColumns(distributeItems(filtered));
   }, [searchText, distributeItems]);
 
-  // const toDetail = (id) => {
-  //   console.log('跳转到详情页', id);
-  // };
-
   const handleSearch = (e) => {
     setSearchText(e.detail.value);
+  };
+
+  const handleNavigateToTravelDetail = (id) => {
+    console.log('Navigating to travel detail with id:', id);
+    Taro.navigateTo({
+      url: `/pages/travelDetail/travelDetail`
+    });
   };
 
   return (
@@ -65,43 +66,11 @@ export default function Index() {
         />
       </View>
 
-      {/* <View className="masonry">
-        {columns.map((column, colIndex) => (
-          <View className="column" key={`col-${colIndex}`}>
-            {column.map((travel) => (
-              <View
-                className="travel-card"
-                key={travel.id}
-                onClick={() => toDetail(travel.id)}
-                style={{ height: `${travel.imageHeight}rpx` }}
-              >
-                <Image
-                  src={travel.images[0]}
-                  className="travel-image"
-                  mode="aspectFill"
-                  style={{ height: `${travel.imageHeight}px ` }}
-                />
-                <View className="card-content">
-                  <Text className="travel-title">{travel.title}</Text>
-                  <View className="user-info">
-                    <Image
-                      src={travel.user.avatar}
-                      className="avatar"
-                      mode="aspectFill"
-                    />
-                    <Text className="username">{travel.user.nickname}</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-        ))}
-      </View> */}
       <View className="masonry">
         {columns.map((column, colIndex) => (
           <View className="column" key={`col-${colIndex}`}>
             {column.map((item) => (
-              <TravelCard key={item.id} travel={item} />
+              <TravelCard key={item.id} travel={item} onClick={handleNavigateToTravelDetail} />
             ))}
           </View>
         ))}

@@ -51,12 +51,3 @@ export const login = async (credentials: UserLogin) => {
     };
   }
 };
-export const getPendingList = async (page: number, limit: number) => {
-  const res = await get('/passage/admin', {
-    params: {
-      page,
-      limit
-    }
-  })
-  console.log(res)
-}

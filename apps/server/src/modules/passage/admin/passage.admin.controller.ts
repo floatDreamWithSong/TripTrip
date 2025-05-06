@@ -1,10 +1,9 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Put, Query } from '@nestjs/common';
 import { UserType } from 'src/common/decorators/user-type.decorator';
-import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS, PassageReview, passageReviewSchema, } from '@triptrip/utils';
+import { JwtPayload, PageQuery,  PASSAGE_STATUS, PassageReview } from '@triptrip/utils';
 import { PassageAdminService } from './passage.admin.service';
 import { PassageService } from '../passage.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
-import { User } from 'src/common/decorators/user.decorator';
 
 @Controller('passage/admin')
 export class PassageAdminController {

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PASSAGE_STATUS } from "@triptrip/utils";
 import { PrismaService } from "src/common/utils/prisma/prisma.service";
-interface Statistic { day: string, submitted: number, approved: number }
 @Injectable()
 export class PassageAdminService {
   private readonly logger = new Logger(PassageAdminService.name);
@@ -35,7 +34,7 @@ export class PassageAdminService {
     { day: '周日', submitted: 34, approved: 32 },
   ];
      */
-    const data: Statistic[] = [];
+    const data: { day: string, submitted: number, approved: number }[] = [];
     const dates = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));

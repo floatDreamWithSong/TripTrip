@@ -2,9 +2,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
-import { getPendingList, PendingPassage } from '@/request/review';
+import { getPendingList, PendingPassage, putReviewStatus } from '@/request/review';
 import { useQuery } from 'react-query';
 import ReactPlayer from 'react-player';
+import { PASSAGE_STATUS } from '@triptrip/utils';
 
 interface Review {
   id: number;
@@ -159,6 +160,11 @@ const ReviewList = () => {
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
 
+    await putReviewStatus({
+      pid: selectedReview.id,
+      status: approved? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
+      reason: approved? void 0 : '审核未通过'
+    });
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,

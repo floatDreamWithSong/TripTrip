@@ -48,6 +48,7 @@ const Statistics = () => {
               <Legend />
               <Bar dataKey="submitted" name="提交数" fill="#8884d8" />
               <Bar dataKey="approved" name="通过数" fill="#82ca9d" />
+              <Bar dataKey="rejected" name="拒绝数" fill="#f07373" />
             </BarChart>
           </ResponsiveContainer>
         </Panel>

@@ -34,7 +34,7 @@ export class PassageAdminService {
     { day: '周日', submitted: 34, approved: 32 },
   ];
      */
-    const data: { day: string, submitted: number, approved: number }[] = [];
+    const data: { day: string, submitted: number, approved: number, rejected: number }[] = [];
     const dates = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -63,13 +63,15 @@ export class PassageAdminService {
         return statDate >= start && statDate < end;
       });
 
-      const approved = dayStats.find(stat => stat.status === PASSAGE_STATUS.APPROVED)?._count.status || 0;
+      const approved = dayStats.filter(stat => stat.status === PASSAGE_STATUS.APPROVED).reduce((acc, stat) => acc + stat._count.status, 0);
+      const rejected = dayStats.filter(stat => stat.status === PASSAGE_STATUS.REJECTED).reduce((acc, stat) => acc + stat._count.status, 0);
       const submitted = dayStats.reduce((acc, stat) => acc + stat._count.status, 0);
 
       data.push({
         day: date.toLocaleDateString('zh-CN', { weekday: 'short' }),
         submitted,
-        approved
+        approved,
+        rejected,
       });
     }
     const result = {
@@ -82,8 +84,8 @@ export class PassageAdminService {
     return result;
   }
 
-  updateByAdmin(pid: number, status: number, reason?: string) {
-    return this.prismaService.passage.update({
+  async updateByAdmin(pid: number, status: number, reason?: string) {
+    await this.prismaService.passage.update({
       where: {
         pid: pid,
         status: PASSAGE_STATUS.PENDING,
@@ -93,6 +95,7 @@ export class PassageAdminService {
         reason: reason,
       }
     })
+    return;
   }
   // listForAdmin(page: number, limit: number) {
   //   this.prismaService.passage.findMany({

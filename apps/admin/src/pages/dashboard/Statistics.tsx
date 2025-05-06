@@ -1,17 +1,20 @@
-import { Panel, Stack } from 'rsuite';
+import { Panel, Stack, Loader } from 'rsuite';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useQuery } from 'react-query';
+import { getStatistics } from '../../request/stat';
 
 const Statistics = () => {
-  // 模拟数据
-  const data = [
-    { day: '周一', submitted: 40, approved: 24 },
-    { day: '周二', submitted: 30, approved: 13 },
-    { day: '周三', submitted: 20, approved: 18 },
-    { day: '周四', submitted: 27, approved: 23 },
-    { day: '周五', submitted: 18, approved: 12 },
-    { day: '周六', submitted: 23, approved: 19 },
-    { day: '周日', submitted: 34, approved: 32 },
-  ];
+  const { data: statsData, isLoading } = useQuery(['statistics'], getStatistics, {
+    refetchInterval: 30000, // 每30秒刷新一次数据
+  });
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <Loader content="加载中..." />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px' }}>
@@ -19,25 +22,25 @@ const Statistics = () => {
         <div style={{ width: '100%', display:'flex',flexDirection:'row', gap:'1rem' }}>
           <Panel bordered style={{ flex: '1' }}>
             <h5>总申核数</h5>
-            <h2>1,248</h2>
+            <h2>{statsData?.data.total || 0}</h2>
           </Panel>
           <Panel bordered style={{ flex: '1' }}>
-            <h5>通过率</h5>
-            <h2>78.3%</h2>
+            <h5>总通过数</h5>
+            <h2>{statsData?.data.approved}</h2>
+          </Panel>
+          <Panel bordered style={{ flex: '1' }}>
+            <h5>总拒绝数</h5>
+            <h2>{statsData?.data.rejected || 0}</h2>
           </Panel>
           <Panel bordered style={{ flex: '1' }}>
             <h5>待处理数</h5>
-            <h2>100</h2>
-          </Panel>
-          <Panel bordered style={{ flex: '1' }}>
-            <h5>今日指标</h5>
-            <h2>34/50</h2>
+            <h2>{statsData?.data.pending || 0}</h2>
           </Panel>
         </div>
 
-        <Panel header="每日审核数据" bordered>
+        <Panel header="七日审核数据" bordered>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={data}>
+            <BarChart data={statsData?.data.data || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />

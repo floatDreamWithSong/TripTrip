@@ -3,16 +3,13 @@ import React from 'react';
 import { View, Image, Text } from '@tarojs/components';
 import './TravelCard.scss';
 
-const TravelCard = ({ travel, onClick }) => {
-    const toDetail = (id) => {
-        console.log('跳转到详情页', id);
-      };
+export default function TravelCard({ travel, onClick }) {
 
   return (
     <View
       className="travel-card"
       style={{ height: `${travel.imageHeight}rpx` }}
-      onClick={() => toDetail(travel.id)}
+      onClick={() => onClick && onClick(travel.id)}
     >
       <Image
         src={travel.images[0]}
@@ -24,15 +21,13 @@ const TravelCard = ({ travel, onClick }) => {
         <Text className="travel-title">{travel.title}</Text>
         <View className="user-info">
           <Image
-            src={travel.user.avatar}
+            src={travel.useravatar}
             className="avatar"
             mode="aspectFill"
           />
-          <Text className="username">{travel.user.nickname}</Text>
+          <Text className="username">{travel.username}</Text>
         </View>
       </View>
     </View>
   );
-};
-
-export default TravelCard;
+}

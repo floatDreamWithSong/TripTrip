@@ -30,11 +30,11 @@ const TravelCard = ({ travel }) => {
         <Text className="travel-title">{travel.title}</Text>
         <View className="user-info">
           <Image
-            src={travel.user.avatar}
+            src={travel.avatar}
             className="avatar"
             mode="aspectFill"
           />
-          <Text className="username">{travel.user.nickname}</Text>
+          <Text className="username">{travel.username}</Text>
         </View>
       </View>
       {/* <View className='travel-state {stateClassMap[travel.state]}'>{travel.state}</View> */}

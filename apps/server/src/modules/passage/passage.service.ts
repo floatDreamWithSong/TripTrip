@@ -45,7 +45,6 @@ export class PassageService {
             },
             omit:{
                 reason: true,
-                content: true,
             }
         });
     }

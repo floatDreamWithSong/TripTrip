@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Put, Query } from '@nestjs/common';
 import { UserType } from 'src/common/decorators/user-type.decorator';
-import { PageQuery, pageQuerySchema, PASSAGE_STATUS, PassageReview, passageReviewSchema, } from '@triptrip/utils';
+import { JwtPayload, PageQuery,  PASSAGE_STATUS, PassageReview } from '@triptrip/utils';
 import { PassageAdminService } from './passage.admin.service';
 import { PassageService } from '../passage.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
@@ -19,10 +19,14 @@ export class PassageAdminController {
   @Get()
   @UserType('beyondUser')
   listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
-    // 查看未通过的文章
     return this.passageService.getPassages(query.page, query.limit, {
       status: PASSAGE_STATUS.PENDING,
       publishTime: 'asc'
     });
+  }
+  @Get('statistics')
+  @UserType('beyondUser')
+  getReviewStatistics() {
+    return this.passageAdminService.getGlobalReviewStatistics();
   }
 }

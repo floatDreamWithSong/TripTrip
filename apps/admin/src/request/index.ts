@@ -94,14 +94,14 @@ export const request = async <T = any>(
     if (newAccessToken) {
       storeTokens(newAccessToken);
     }
-
+    const payload=  await response.json()
     if (!response.ok) {
-      const error: RequestError = new Error('请求失败');
+      const error: RequestError = new Error(payload.message);
       error.status = response.status;
       throw error;
     }
 
-    return response.json();
+    return payload;
   } catch (error) {
     const err = error as RequestError;
     

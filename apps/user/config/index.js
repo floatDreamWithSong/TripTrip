@@ -2,6 +2,7 @@ import { defineConfig } from '@tarojs/cli'
 
 import devConfig from './dev'
 import prodConfig from './prod'
+import path from 'path';
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig(async (merge, { command, mode }) => {
@@ -14,6 +15,9 @@ export default defineConfig(async (merge, { command, mode }) => {
       750: 1,
       375: 2,
       828: 1.81 / 2
+    },
+    alias: {
+      '@': path.resolve(__dirname, '..', 'src')
     },
     sourceRoot: 'src',
     outputRoot: 'dist',

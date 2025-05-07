@@ -154,7 +154,7 @@ export class PassageService {
             throw EXCEPTIONS.PASSAGE_NOT_FOUND
         }
         // 检查用户是否有权限删除文章
-        if (user.type !== USER_TYPE.ADMIN && passage.authorId !== user.uid) {
+        if (user.userType !== USER_TYPE.ADMIN && passage.authorId !== user.uid) {
             throw EXCEPTIONS.PASSAGE_DELETE_FAILED
         }
         return this.prismaService.$transaction(async (tx) => {

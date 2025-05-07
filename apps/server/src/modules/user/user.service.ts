@@ -32,6 +32,7 @@ export class UserService {
         password: true,
       }
     })
+    return user;
   }
   private readonly logger = new Logger(UserService.name);
   constructor(

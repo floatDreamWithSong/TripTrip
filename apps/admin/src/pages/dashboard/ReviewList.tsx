@@ -1,18 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel } from 'rsuite';
+import { List, Panel, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
-import { deletePassage, getPendingList, PendingPassage, putReviewStatus } from '@/request/review';
+import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
 import { useQuery } from 'react-query';
-import ReactPlayer from 'react-player';
-import { PASSAGE_STATUS, USER_TYPE } from '@triptrip/utils';
-import { useUserStore } from '@/store/user';
+import { PASSAGE_STATUS } from '@triptrip/utils';
+import { PendingReviewPassages } from '@/types/passage';
+import ReviewModal from './ReviewModal';
 
 interface Review {
   id: number;
   title: string;
   author: string;
-  image: string;
+  coverImage: string;
   images: string[];
   video?: string;
   content: string;
@@ -24,7 +24,7 @@ const ReviewList = () => {
   const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [hasMore, setHasMore] = useState(true);
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
@@ -32,8 +32,6 @@ const ReviewList = () => {
   const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
   const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
-  const [activeIndex, setActiveIndex] = useState(0);
-  const userData = useUserStore(state => state.userInfo);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['pendingList', page],
     queryFn: () => getPendingList({ page, limit: 10 }),
@@ -43,15 +41,14 @@ const ReviewList = () => {
   // 数据转换和状态更新
   useEffect(() => {
     if (data?.data) {
-      const newReviews = data.data.map((passage: PendingPassage) => ({
-        id: passage.pid,
-        title: passage.title,
-        author: passage.author.username,
-        image: passage.PassageImage[0]?.url || '',
-        images: passage.PassageImage.map(img => img.url),
-        video: passage.videoUrl,
-        content: passage.content,
-        description: passage.PassageToTag.map(pt => pt.tag.name).join(', '),
+      const newReviews = data.data.map((passage: PendingReviewPassages) => ({
+        id: passage.pid || 0,
+        title: passage.title || '',
+        author: passage.author?.username || '',
+        coverImage: passage.coverImageUrl || '',
+        images: [],
+        content: '',
+        description: passage.PassageToTag?.map(pt => pt.tag.name).join(', ') || '',
         status: 'pending',
       }));
 
@@ -142,12 +139,15 @@ const ReviewList = () => {
 
   // 处理审核操作
   const handleReview = async (isApproved: boolean, isDelete: boolean = false) => {
-    if (!selectedReview) return;
+    if (!selectedReviewId) return;
 
-    const currentIndex = reviews.findIndex(r => r.id === selectedReview.id);
+    const currentReview = reviews.find(r => r.id === selectedReviewId);
+    if (!currentReview) return;
+
+    const currentIndex = reviews.findIndex(r => r.id === selectedReviewId);
     if (currentIndex === -1) return;
 
-    const element = listItemsRef.current[selectedReview.id];
+    const element = listItemsRef.current[selectedReviewId];
     if (!element) return;
 
     // 获取List.Item元素（父元素）
@@ -160,15 +160,17 @@ const ReviewList = () => {
     const marginTop = parseFloat(computedStyle.marginTop);
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
+    
     if (isDelete) {
-      await deletePassage(selectedReview.id)
+      await deletePassage(selectedReviewId);
     } else {
       await putReviewStatus({
-        pid: selectedReview.id,
+        pid: selectedReviewId,
         status: isApproved ? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
         reason: isApproved ? void 0 : '审核未通过'
       });
     }
+    
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,
@@ -198,7 +200,7 @@ const ReviewList = () => {
     // 不能直接更新，react的set是异步的，导致直接使用会造成闪烁
     await new Promise(resolve => {
       requestAnimationFrame(() => {
-        setReviews(prev => prev.filter(review => review.id !== selectedReview.id));
+        setReviews(prev => prev.filter(review => review.id !== selectedReviewId));
         resolve(null);
       });
     });
@@ -211,7 +213,7 @@ const ReviewList = () => {
 
     toaster.push(
       <Message type="success">
-        {isDelete ? '已删除' : (isApproved ? '已批准' : '已拒绝')} {selectedReview.title}
+        {isDelete ? '已删除' : (isApproved ? '已批准' : '已拒绝')} {currentReview.title}
       </Message>
     );
   };
@@ -224,7 +226,7 @@ const ReviewList = () => {
             key={review.id}
             style={{ cursor: 'pointer' }}
             onClick={() => {
-              setSelectedReview(review);
+              setSelectedReviewId(review.id);
               setOpen(true);
             }}
           >
@@ -243,7 +245,7 @@ const ReviewList = () => {
                       <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
                     )}
                     <img
-                      src={review.image}
+                      src={review.coverImage}
                       alt={review.title}
                       style={{
                         height: 200,
@@ -296,87 +298,12 @@ const ReviewList = () => {
         </div>
       )}
 
-      <Modal size="lg" open={open} onClose={() => setOpen(false)}>
-        <Modal.Header>
-          <Modal.Title>{selectedReview?.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Stack direction="column" spacing={20}>
-            <div style={{ position: 'relative', width: '100%', maxHeight: 500 }}>
-              <Carousel
-                autoplay={false}
-                activeIndex={activeIndex}
-                onSelect={index => setActiveIndex(index)}
-                style={{ borderRadius: '8px', overflow: 'hidden' }}
-              >
-                {selectedReview?.video && (
-                  <div style={{ width: '100%', height: 500, background: '#000' }}>
-                    <ReactPlayer
-                      url={selectedReview.video}
-                      width="100%"
-                      height="100%"
-                      controls
-                      playing={activeIndex === 0}
-                    />
-                  </div>
-                )}
-                {selectedReview?.images.map((image, index) => (
-                  <div key={index} style={{ height: 500 }}>
-                    {!imageLoaded[selectedReview.id] && (
-                      <Placeholder.Graph active style={{ width: '100%', height: 500 }} />
-                    )}
-                    <img
-                      src={image}
-                      alt={`${selectedReview.title} - ${index + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        background: '#f5f5f5',
-                        display: imageLoaded[selectedReview.id] ? 'block' : 'none'
-                      }}
-                      onLoad={() => selectedReview && setImageLoaded(prev => ({ ...prev, [selectedReview.id]: true }))}
-                    />
-                  </div>
-                ))}
-              </Carousel>
-            </div>
-            {selectedReview && !imageLoaded[selectedReview.id] ? (
-              <Placeholder.Paragraph rows={4} active style={{ width: '100%' }} />
-            ) : (
-              <Stack direction="column" spacing={16}>
-                <div>
-                  <h6 style={{ marginBottom: '8px' }}>作者</h6>
-                  <p>{selectedReview?.author}</p>
-                </div>
-                <div>
-                  <h6 style={{ marginBottom: '8px' }}>标签</h6>
-                  <p>{selectedReview?.description}</p>
-                </div>
-                <div>
-                  <h6 style={{ marginBottom: '8px' }}>内容</h6>
-                  <p style={{ whiteSpace: 'pre-wrap' }}>{selectedReview?.content}</p>
-                </div>
-              </Stack>
-            )}
-          </Stack>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={() => handleReview(false)} color="red" appearance="ghost">
-            拒绝
-          </Button>
-          <Button onClick={() => handleReview(true)} color="green" appearance="primary">
-            批准
-          </Button>
-          {
-            userData?.userType === USER_TYPE.ADMIN && (
-              <Button onClick={() => handleReview(false, true)} color="orange" appearance="primary">
-                删除
-              </Button>
-            )
-          }
-        </Modal.Footer>
-      </Modal>
+      <ReviewModal 
+        passageId={selectedReviewId}
+        open={open}
+        onClose={() => setOpen(false)}
+        handleReview={handleReview}
+      />
     </div>
   );
 };

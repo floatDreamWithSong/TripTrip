@@ -87,13 +87,13 @@ export default function myTravels() {
   const submitToBackend = async () => {
     try {
       const formData = new FormData();
-  
+
       formData.append('title', title);
       formData.append('content', value);
       formData.append('tags', '示例标签');
-  
+
       console.log("准备提交的图片列表：", images);
-  
+
       images.forEach((image, index) => {
         const file = image.originFileObj;
         if (file instanceof File) {
@@ -105,52 +105,61 @@ export default function myTravels() {
           console.warn(`第 ${index + 1} 张图片没有 originFileObj`);
         }
       });
-  
+
       if (videoFile instanceof File) {
         formData.append('video', videoFile);
         console.log('添加视频文件:', videoFile.name);
       }
-  
+
       console.log('FormData内容：');
       for (let [key, value] of formData.entries()) {
         console.log(key, value);
       }
 
-      if (formData.get('title') === '') {
+      if (!title.trim()) {
         Taro.showToast({ title: '标题不能为空', icon: 'none', duration: 2000 });
-        return;
+        return false;
       }
 
-      if (formData.get('content') === '') {
+      if (!value.trim()) {
         Taro.showToast({ title: '内容不能为空', icon: 'none', duration: 2000 });
+        return false;
+      }
+
+      if (images.length === 0) {
+        Taro.showToast({ title: '请上传图片', icon: 'none', duration: 2000 });
+        return false;
+      }
+
+      if (!agreement) {
+        Taro.showToast({ title: '请同意发布规则', icon: 'none', duration: 2000 });
         return;
       }
 
-      if (formData.get('images') === '') {
-        Taro.showToast({ title: '请上传图片', icon: 'none', duration: 2000 });
-        return;
-      }
-  
+
       const response = await fetch('https://your.api.host/passage/user', {
         method: 'POST',
         body: formData,
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok) {
         Taro.showToast({ title: '发布成功', icon: 'success', duration: 2000 });
         console.log('发布成功:', result);
+        return true;
       } else {
         Taro.showToast({ title: '发布失败', icon: 'none', duration: 2000 });
         console.error('后端错误:', result);
+      return false;
       }
     } catch (err) {
       Taro.showToast({ title: '网络异常', icon: 'none', duration: 2000 });
       console.error('网络异常:', err);
+      return false;
     }
   };
-  
+
 
   const [files, setFiles] = useState([])
   const [file, setFile] = useState(null)
@@ -174,62 +183,38 @@ export default function myTravels() {
     setImages(newFileList);
   };
 
-  const enterLoading = index => {
+  const enterLoading = async index => {
     setLoadings(prevLoadings => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
       return newLoadings;
     });
-    setTimeout(() => {
-      setLoadings(prevLoadings => {
-        setTimeout(() => {
-          setLoadings(prevLoadings => {
-            const newLoadings = [...prevLoadings];
-            newLoadings[index] = false;
-        
-            // 👇 调用上传函数
-            submitToBackend();
-        
-            console.log('loading finish');
-            // Taro.showToast({
-            //   title: '发布成功',
-            //   icon: 'success',
-            //   duration: 2000
-            // });
-        
-            return newLoadings;
-          });
-        
-          // 页面跳转逻辑
-          setTimeout(() => {
-            Taro.switchTab({
-              url: '/pages/myTravels/myTravels'
-            });
-          }, 2000);
-        }, 3000);
-        
-
-
-        const newLoadings = [...prevLoadings];
-        newLoadings[index] = false;
-        console.log('loading finish');
+  
+    try {
+      const success = await submitToBackend(); // ✅ 等待异步上传结果
+  
+      if (success) {
         Taro.showToast({
           title: '发布成功',
           icon: 'success',
           duration: 2000
         });
+  
+        setTimeout(() => {
+          Taro.switchTab({
+            url: '/pages/myTravels/myTravels'
+          });
+        }, 2000);
+      }
+    } finally {
+      setLoadings(prevLoadings => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
         return newLoadings;
       });
-
-      // 在 toast 显示后切换页面
-      setTimeout(() => {
-        Taro.switchTab({
-          url: '/pages/index/index'
-        });
-      }, 2000); // 4秒后切换页面，确保 toast 显示完毕（2秒）后再进行跳转
-    }, 3000);
-
+    }
   };
+  
 
   // const onUpload = () => {
   //   chooseImage({
@@ -329,7 +314,7 @@ export default function myTravels() {
             value={agreement}
             onValueChange={setChecked => setAgreement(setChecked)}
           /> */}
-          <Radio>
+          <Radio defaultChecked={agreement} onChange={() => setAgreement(!agreement)}>
             <Text className="checkboxText">阅读并同意《携程社区发布规则》</Text>
           </Radio>
 

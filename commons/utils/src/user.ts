@@ -34,3 +34,15 @@ export const USER_TYPE = {
   REVIEWER: 1,
   ADMIN: 2
 }
+export interface UserInfo {
+  username: string
+  avatar: string
+  userType: number
+  email: string
+  gender: number
+  registerTime: string
+  _count: {
+    Passage: number
+  }
+  uid: number
+}

@@ -1,6 +1,7 @@
-import { passwordSchema, UserLogin, usernameSchema } from '@triptrip/utils';
+import { passwordSchema, UserInfo, UserLogin, usernameSchema } from '@triptrip/utils';
 import { get, post } from './index';
 import { storeTokens } from './index';
+import { useUserStore } from '../store/user';
 
 interface LoginPayLoad {
   accessToken: string;
@@ -51,3 +52,29 @@ export const login = async (credentials: UserLogin) => {
     };
   }
 };
+
+export const tryAutoAuthenticate = async () => {
+  try {
+    const response = await get<UserInfo>('/user/self');
+
+    if (response.code === 0 && response.data) {
+      useUserStore.getState().setUserInfo(response.data);
+      return {
+        success: true,
+        data: response.data
+      };
+    }
+    
+    return {
+      success: false,
+      error: response.message
+    };
+  } catch (error: any) {
+    console.error('Auto authenticate failed:', error);
+    useUserStore.getState().clearUserInfo();
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}

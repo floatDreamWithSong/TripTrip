@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
+import { AuthGuard } from '../components/AuthGuard';
 
 const Login = lazy(() => import('../pages/auth/Login'));
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
@@ -9,7 +10,11 @@ const ReviewList = lazy(() => import('../pages/dashboard/ReviewList'));
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/auth/login" replace />,
+    element: (
+      <AuthGuard>
+        <Navigate to="/dashboard" replace />
+      </AuthGuard>
+    ),
   },
   {
     path: '/auth/login',
@@ -17,11 +22,15 @@ export const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
-    element: <Dashboard />,
+    element: (
+      <AuthGuard>
+        <Dashboard />
+      </AuthGuard>
+    ),
     children: [
       {
-        path: '',
-        element: <Navigate to="statistics" replace />,
+        index: true,
+        element: <Statistics />,
       },
       {
         path: 'statistics',

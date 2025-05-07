@@ -1,5 +1,5 @@
-import { get, put } from ".";
-import { BaseResponse, PageQuery, PassageReview } from "@triptrip/utils";
+import { del, get, put } from ".";
+import { PageQuery, PassageReview } from "@triptrip/utils";
 
 export interface PassageAuthor {
   uid: number;
@@ -45,3 +45,10 @@ export const getPendingList = (params: PageQuery) => {
 export const putReviewStatus = (data: PassageReview) => {
   return put('/passage/admin', data);
 };
+export const deletePassage = (passageId: number) => {
+  return del('/passage',{
+    params:{
+      passageId
+    }
+  })
+}

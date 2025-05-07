@@ -2,10 +2,11 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { List, Panel, Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
-import { getPendingList, PendingPassage, putReviewStatus } from '@/request/review';
+import { deletePassage, getPendingList, PendingPassage, putReviewStatus } from '@/request/review';
 import { useQuery } from 'react-query';
 import ReactPlayer from 'react-player';
-import { PASSAGE_STATUS } from '@triptrip/utils';
+import { PASSAGE_STATUS, USER_TYPE } from '@triptrip/utils';
+import { useUserStore } from '@/store/user';
 
 interface Review {
   id: number;
@@ -27,12 +28,12 @@ const ReviewList = () => {
   const [open, setOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
-  const listItemsRef = useRef<{[key: number]: HTMLDivElement | null}>({});
+  const listItemsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
-  const [imageLoaded, setImageLoaded] = useState<{[key: number]: boolean}>({});
+  const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
   const [activeIndex, setActiveIndex] = useState(0);
-
+  const userData = useUserStore(state => state.userInfo);
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['pendingList', page],
     queryFn: () => getPendingList({ page, limit: 10 }),
@@ -68,10 +69,10 @@ const ReviewList = () => {
   useEffect(() => {
     const prevReviews = prevReviewsRef.current;
     const prevIds = new Set(prevReviews.map(r => r.id));
-    
+
     // 找出新增的元素
     const newReviews = reviews.filter(review => !prevIds.has(review.id));
-    
+
     // 只对新增的元素执行动画
     newReviews.forEach((review, index) => {
       const element = listItemsRef.current[review.id];
@@ -82,7 +83,7 @@ const ReviewList = () => {
           y: 50,
           scale: 0.8
         });
-        
+
         // 执行动画
         gsap.to(element, {
           opacity: 1,
@@ -140,7 +141,7 @@ const ReviewList = () => {
   }, [reviews]);
 
   // 处理审核操作
-  const handleReview = async (approved: boolean) => {
+  const handleReview = async (isApproved: boolean, isDelete: boolean = false) => {
     if (!selectedReview) return;
 
     const currentIndex = reviews.findIndex(r => r.id === selectedReview.id);
@@ -159,12 +160,15 @@ const ReviewList = () => {
     const marginTop = parseFloat(computedStyle.marginTop);
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
-
-    await putReviewStatus({
-      pid: selectedReview.id,
-      status: approved? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
-      reason: approved? void 0 : '审核未通过'
-    });
+    if (isDelete) {
+      await deletePassage(selectedReview.id)
+    } else {
+      await putReviewStatus({
+        pid: selectedReview.id,
+        status: isApproved ? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
+        reason: isApproved ? void 0 : '审核未通过'
+      });
+    }
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,
@@ -178,8 +182,8 @@ const ReviewList = () => {
       .slice(currentIndex + 1)
       .map(r => listItemsRef.current[r.id]?.closest('.rs-list-item'))
       .filter((el): el is HTMLElement => el !== null);
-      
-      setOpen(false);
+
+    setOpen(false);
     // 3. 执行上移动画
     if (followingElements.length > 0) {
       await gsap.to(followingElements, {
@@ -207,7 +211,7 @@ const ReviewList = () => {
 
     toaster.push(
       <Message type="success">
-        {approved ? '已批准' : '已拒绝'} {selectedReview.title}
+        {isDelete ? '已删除' : (isApproved ? '已批准' : '已拒绝')} {selectedReview.title}
       </Message>
     );
   };
@@ -224,7 +228,7 @@ const ReviewList = () => {
               setOpen(true);
             }}
           >
-            <div 
+            <div
               ref={(el) => {
                 if (index === reviews.length - 1) {
                   lastElementRef.current = el;
@@ -232,11 +236,11 @@ const ReviewList = () => {
                 listItemsRef.current[review.id] = el;
               }}
             >
-              <Panel style={{padding:'0px'}} >
+              <Panel style={{ padding: '0px' }} >
                 <Stack spacing={20}>
                   <div style={{ position: 'relative', width: 200, height: 200 }}>
                     {!imageLoaded[review.id] && (
-                      <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius:'8px' }} />
+                      <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
                     )}
                     <img
                       src={review.image}
@@ -338,7 +342,7 @@ const ReviewList = () => {
               </Carousel>
             </div>
             {selectedReview && !imageLoaded[selectedReview.id] ? (
-              <Placeholder.Paragraph rows={4} active style={{width:'100%'}} />
+              <Placeholder.Paragraph rows={4} active style={{ width: '100%' }} />
             ) : (
               <Stack direction="column" spacing={16}>
                 <div>
@@ -364,6 +368,13 @@ const ReviewList = () => {
           <Button onClick={() => handleReview(true)} color="green" appearance="primary">
             批准
           </Button>
+          {
+            userData?.userType === USER_TYPE.ADMIN && (
+              <Button onClick={() => handleReview(false, true)} color="orange" appearance="primary">
+                删除
+              </Button>
+            )
+          }
         </Modal.Footer>
       </Modal>
     </div>

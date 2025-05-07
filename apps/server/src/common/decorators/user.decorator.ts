@@ -6,7 +6,7 @@ export const User = createParamDecorator((data: keyof JwtPayload, ctx: Execution
   const request = ctx.switchToHttp().getRequest<Request>();
   const user = request['user'] as JwtPayload; // JWT解析后的用户数据
   if (!user) {
-    return null; // 未登录，返回null
+    return void 0; // 未登录，返回undefined
   }
   if (!data) {
     return user; // 未指定属性，返回整个用户数据

@@ -5,7 +5,7 @@ import { useUserStore } from '../store/user';
 
 let isRefreshingToken = false;
 
-const getAccessToken = async () => {
+export const getAccessToken = async () => {
   return await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '');
 };
 

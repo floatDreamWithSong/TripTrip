@@ -1,4 +1,4 @@
-import { Controller,  Post, Body, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller,  Post, Body, Delete, ParseIntPipe, Get } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { User } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from '@triptrip/utils';
@@ -24,5 +24,17 @@ export class CommentController {
   @Delete()
   removeComment(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.commentService.removeComment(user, commentId);
+  }
+  @Get('passage')
+  getPassageCommentList(@Body('passageId', ParseIntPipe) passageId: number,
+    @Body('page', ParseIntPipe) page: number,
+    @Body('limit', ParseIntPipe) limit: number) {
+    return this.commentService.getPassageCommentList(passageId, page, limit);
+  }
+  @Get('reply')
+  getReplyCommentList(@Body('parentId', ParseIntPipe) parentId: number,
+    @Body('page', ParseIntPipe) page: number,
+    @Body('limit', ParseIntPipe) limit: number) {
+    return this.commentService.getReplyCommentList(parentId, page, limit);
   }
 }

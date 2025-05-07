@@ -1,26 +1,27 @@
 import { View, Text, Image, Checkbox as CheckBox } from '@tarojs/components';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './addTravel.scss';
 import AddPicture from '../../components/addPicture';
 import Taro, { Component } from '@tarojs/taro'
-import { 
-  Flex, 
-  Input, 
-  Radio, 
-  Button, 
-  ConfigProvider, 
-  Space 
+import {
+  Flex,
+  Input,
+  Radio,
+  Button,
+  ConfigProvider,
+  Space
 } from 'antd';
-import { 
-  FileTextOutlined, 
-  SettingOutlined, 
-  PaperClipOutlined, 
-  AntDesignOutlined, 
-  PoweroffOutlined, 
+import {
+  FileTextOutlined,
+  SettingOutlined,
+  PaperClipOutlined,
+  AntDesignOutlined,
+  PoweroffOutlined,
   SyncOutlined,
   UploadOutlined
 } from '@ant-design/icons';
 // import { createStyles } from 'antd-style';
+import { getAccessToken } from '../../utils/request';
 
 const TextArea = Input.TextArea;
 
@@ -50,14 +51,125 @@ const TextArea = Input.TextArea;
 
 export default function myTravels() {
 
+  useEffect(() => {
+    console.log('addTravel页面加载完成')
+
+    // 显示组件加载完成提示，并设置两秒后消失
+    Taro.showToast({
+      title: '请先登录！',
+      icon: 'loading',
+      duration: 2000
+    });
+
+    // 设置两秒后关闭提示
+    setTimeout(() => {
+      const checkLoginStatus = async () => {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          // 如果没有获取到访问令牌，跳转到登录页面
+          // Taro.showToast({
+          //   title: '未登录，请先登录',
+          //   icon: 'none'
+          // });
+          Taro.navigateTo({ url: '/pages/login/index' });
+        } else {
+          // 如果获取到访问令牌，可以进一步验证令牌的有效性
+          // 这里可以根据需要添加更多的验证逻辑
+          console.log('用户已登录');
+        }
+      };
+
+      checkLoginStatus();
+    }, 2000);
+
+  }, []);
+
+  const submitToBackend = async () => {
+    try {
+      const formData = new FormData();
+
+      formData.append('title', title);
+      formData.append('content', value);
+      formData.append('tags', '示例标签');
+
+      console.log("准备提交的图片列表：", images);
+
+      images.forEach((image, index) => {
+        const file = image.originFileObj;
+        if (file instanceof File) {
+          const fileToHttp = URL.createObjectURL(file)
+          formData.append('images', fileToHttp);
+          // formData.append('images', file);
+          console.log(`添加图片 ${index + 1}:`, file.name);
+        } else {
+          console.warn(`第 ${index + 1} 张图片没有 originFileObj`);
+        }
+      });
+
+      if (videoFile instanceof File) {
+        formData.append('video', videoFile);
+        console.log('添加视频文件:', videoFile.name);
+      }
+
+      console.log('FormData内容：');
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      if (!title.trim()) {
+        Taro.showToast({ title: '标题不能为空', icon: 'none', duration: 2000 });
+        return false;
+      }
+
+      if (!value.trim()) {
+        Taro.showToast({ title: '内容不能为空', icon: 'none', duration: 2000 });
+        return false;
+      }
+
+      if (images.length === 0) {
+        Taro.showToast({ title: '请上传图片', icon: 'none', duration: 2000 });
+        return false;
+      }
+
+      if (!agreement) {
+        Taro.showToast({ title: '请同意发布规则', icon: 'none', duration: 2000 });
+        return;
+      }
+
+
+      const response = await fetch('https://your.api.host/passage/user', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Taro.showToast({ title: '发布成功', icon: 'success', duration: 2000 });
+        console.log('发布成功:', result);
+        return true;
+      } else {
+        Taro.showToast({ title: '发布失败', icon: 'none', duration: 2000 });
+        console.error('后端错误:', result);
+      return false;
+      }
+    } catch (err) {
+      Taro.showToast({ title: '网络异常', icon: 'none', duration: 2000 });
+      console.error('网络异常:', err);
+      return false;
+    }
+  };
+
+
   const [files, setFiles] = useState([])
   const [file, setFile] = useState(null)
   const [images, setImages] = useState([]);
+  const [videoFile, setVideoFile] = useState(null);
   const [title, setTitle] = useState('');
   const [value, setValue] = useState('');
   const [agreement, setAgreement] = useState(false);
   const [loadings, setLoadings] = useState([]);
-  
+
 
   const redPackage = (Math.random() * 10).toFixed(1);
   // const { styles } = useStyle();
@@ -71,34 +183,38 @@ export default function myTravels() {
     setImages(newFileList);
   };
 
-  const enterLoading = index => {
+  const enterLoading = async index => {
     setLoadings(prevLoadings => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
       return newLoadings;
     });
-    setTimeout(() => {
-      setLoadings(prevLoadings => {
-        const newLoadings = [...prevLoadings];
-        newLoadings[index] = false;
-        console.log('loading finish');
+  
+    try {
+      const success = await submitToBackend(); // ✅ 等待异步上传结果
+  
+      if (success) {
         Taro.showToast({
           title: '发布成功',
           icon: 'success',
           duration: 2000
         });
+  
+        setTimeout(() => {
+          Taro.switchTab({
+            url: '/pages/myTravels/myTravels'
+          });
+        }, 2000);
+      }
+    } finally {
+      setLoadings(prevLoadings => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
         return newLoadings;
       });
-
-      // 在 toast 显示后切换页面
-      setTimeout(() => {
-        Taro.switchTab({
-          url: '/pages/index/index'
-        });
-      }, 2000); // 4秒后切换页面，确保 toast 显示完毕（2秒）后再进行跳转
-    }, 3000);
-
+    }
   };
+  
 
   // const onUpload = () => {
   //   chooseImage({
@@ -198,7 +314,7 @@ export default function myTravels() {
             value={agreement}
             onValueChange={setChecked => setAgreement(setChecked)}
           /> */}
-          <Radio>
+          <Radio defaultChecked={agreement} onChange={() => setAgreement(!agreement)}>
             <Text className="checkboxText">阅读并同意《携程社区发布规则》</Text>
           </Radio>
 

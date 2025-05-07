@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { FollowService } from './follow.service';
 import { JwtPayload } from '@triptrip/utils';
 import { User } from 'src/common/decorators/user.decorator';
@@ -15,5 +15,9 @@ export class FollowController {
   @Delete()
   removeFollow(@User() user: JwtPayload, @Body('followId', ParseIntPipe) followingId: number) {
     this.followService.removeFollow(user.uid, followingId);
+  }
+  @Get()
+  getFollowList(@User() user: JwtPayload, @Query ('page', ParseIntPipe) page: number, @Query ('limit', ParseIntPipe) limit: number) {
+    return this.followService.getFollowList(user.uid, page, limit);
   }
 }

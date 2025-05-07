@@ -42,19 +42,18 @@ model Passage {
   status        Int          @default(0)
   reason        String?
   views         Int          @default(0)
-
+  coverImageUrl String
   // 优化：移除冗余的likes字段，通过PassageLike关系统计
   author        User         @relation(fields: [authorId], references: [uid])
   images        PassageImage[]
-  tags          Tag[]        @relation("PassageToTag")
   comments      Comment[]
   passageLikes  PassageLike[]
   favorites     Favorite[]
+  PassageToTag  PassageToTag[]
   
   @@index([publishTime]) // 添加索引优化排序查询
   @@index([lastEditTime])
   @@map("passages")
-  PassageToTag PassageToTag[]
 }
 
 model PassageImage {
@@ -69,10 +68,9 @@ model PassageImage {
 model Tag {
   tid      Int           @id @default(autoincrement())
   name     String        @unique
-  passages Passage[]     @relation("PassageToTag")
+  PassageToTag PassageToTag[]
   
   @@map("tags")
-  PassageToTag PassageToTag[]
 }
 
 model PassageToTag {

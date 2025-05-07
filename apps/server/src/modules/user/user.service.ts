@@ -10,6 +10,29 @@ import { USER_TYPE } from '@triptrip/utils';
 
 @Injectable()
 export class UserService {
+  privateInfo(uid: number) {
+    const user = this.prismaService.user.findUnique({
+      where: {
+        uid: uid,
+      },
+      include:{
+        _count: {
+          select: {
+            passages: {
+              where: {
+                status: PASSAGE_STATUS.APPROVED,
+              }
+            },
+            followers: true,
+            following: true,
+          }
+        }
+      },
+      omit: {
+        password: true,
+      }
+    })
+  }
   private readonly logger = new Logger(UserService.name);
   constructor(
     private readonly cosService: CosService,
@@ -18,7 +41,12 @@ export class UserService {
     private readonly jwtUtils: JwtUtils,
     private readonly verificationCodeService: VerificationCodeService,
   ) {}
-  async info(uid: number) {
+  /**
+   *  用户公开信息
+   * @param uid 
+   * @returns 
+   */
+  async publicInfo(uid: number) {
     const user = await this.prismaService.user.findUnique({
       where: {
         uid: uid,
@@ -32,17 +60,26 @@ export class UserService {
         registerTime: true,
         _count:{
           select:{
-            Passage: true
+            passages: {
+              where: {
+                status: PASSAGE_STATUS.APPROVED,
+              }
+            },
+            followers: true,
+            following: true,
           }
         }
       },
     });
-    console.log(user)
+    this.logger.debug('查询用户公开信息:\n',user)
     return {
       ...user,
       uid: uid
     }
   }
+
+
+
   private checkEmail(email: string) {
     this.logger.debug(`checking email: ${email}`);
     if(!emailSchema.safeParse(email).success) {
@@ -64,6 +101,10 @@ export class UserService {
       type: USER_TYPE.USER,
     })    
   }
+  /**
+   *  发送验证码
+   * @param email 
+   */
   async sendVerifyCode(email: string): Promise<void> {
     // 检查邮箱格式
     this.checkEmail(email)
@@ -84,6 +125,11 @@ export class UserService {
     // 缓存验证码，有效期为 5 分钟
     await this.verificationCodeService.setCode(email, code);
   }
+  /**
+   *  用户登录
+   * @param body 
+   * @returns 
+   */
   async login(body: UserLogin) {
     // 检查用户是否存在
     const user = await this.prismaService.user.findUnique({
@@ -101,9 +147,14 @@ export class UserService {
     // 生成 token
     return {
       ...this.generateTokenPair(user.uid, user.userType, user.username),
-      info: await this.info(user.uid)
+      info: await this.publicInfo(user.uid)
     }
   }
+  /**
+   *  用户注册
+   * @param body 
+   * @returns 
+   */
   async register(body: UserRegister) {
     // 检查邮箱格式
     this.checkEmail(body.email);
@@ -123,14 +174,14 @@ export class UserService {
       data: {
         email: body.email,
         password: body.password,
-        avatar: '',
-        username: body.username 
+        avatar: 'https://wonderland-1328561145.cos.ap-shanghai.myqcloud.com/default.png',
+        username: body.username
       },
     });
     // 生成 token
     return {
       ...this.generateTokenPair(newUser.uid, newUser.userType, newUser.username),
-      info: await this.info(newUser.uid)
+      info: await this.publicInfo(newUser.uid)
     }
   }
 }

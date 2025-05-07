@@ -45,10 +45,10 @@ export class UserController {
   @Get('info')
   @Public()
   async info(@Query('uid', ParseIntPipe) uid: number) {
-    return await this.userService.info(uid);
+    return await this.userService.publicInfo(uid);
   }
   @Get('self')
   async self(@User() user: JwtPayload){
-    return await this.userService.info(user.uid)
+    return await this.userService.privateInfo(user.uid)
   }
 }

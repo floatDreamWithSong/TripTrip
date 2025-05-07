@@ -9,12 +9,22 @@ import { ZodValidationPipe } from "src/common/pipes/zod-validate.pipe";
 export class PassageController {
   private readonly logger = new Logger(PassageController.name);
   constructor(private readonly passageService: PassageService) {}
+  /**
+   *  获取文章详情
+   * @param id 
+   * @returns 
+   */
   @Get()
   @Public()
   getOne(@Query('id', ParseIntPipe) id: number) {
     return this.passageService.getOne(id);
   }
-
+  /**
+   *  获取文章列表
+   * @param query 
+   * @param userId 
+   * @returns 
+   */
   @Get('list')
   @Public()
   list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('userId') userId?: number) {
@@ -23,13 +33,19 @@ export class PassageController {
     if(userId){
       userId = parseInt(userId.toString());
     }
-    // 公共视角下的文章列表
     return this.passageService.getPassages(query.page, query.limit, {
       userId: userId,
       status: PASSAGE_STATUS.APPROVED,
       publishTime: "desc"
     });
   }
+
+  /**
+   *  删除文章
+   * @param user 
+   * @param passageId 
+   * @returns 
+   */
   @Delete()
   @HttpCode(HttpStatus.OK)
   delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {

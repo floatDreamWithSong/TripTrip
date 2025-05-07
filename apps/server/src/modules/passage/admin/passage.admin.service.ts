@@ -97,21 +97,4 @@ export class PassageAdminService {
     })
     return;
   }
-  // listForAdmin(page: number, limit: number) {
-  //   this.prismaService.passage.findMany({
-  //     skip: (page - 1) * limit,
-  //     take: limit,
-  //     include: {
-  //       PassageImage: true,
-  //       PassageToTag: {
-  //         include: {
-  //           tag: true
-  //         }
-  //       }
-  //     },
-  //     where: {
-  //       status: PASSAGE_STATUS.PENDING
-  //     }
-  //   })
-  // }
 }

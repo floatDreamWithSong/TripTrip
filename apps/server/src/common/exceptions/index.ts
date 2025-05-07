@@ -77,8 +77,11 @@ export const EXCEPTIONS = {
   VERIFY_CODE_SEND_TOO_FREQUENTLY: new AuthException('验证码发送太频繁'),
   INVALID_IMAGE_TYPE: new UploadServerException('只允许上传图片文件(jpeg,png,gif,webp)'),
   IMAGE_SIZE_EXCEEDED: new UploadServerException('图片大小不能超过2M'),
+  COVER_IMAGE_NOT_FOUND: new UploadServerException('封面图片不能为空'),
   INVALID_VIDEO_TYPE: new UploadServerException('只允许上传视频文件(mp4,webm,ogg,avi)'),
   VIDEO_SIZE_EXCEEDED: new UploadServerException('视频大小不能超过50M'),
   PASSAGE_NOT_FOUND: new PassageException('游记不存在'),
   PASSAGE_DELETE_FAILED: new PassageException('游记删除失败'),
+  COMMENT_DELETE_FAILED: new ClientException('评论删除失败'),
+  COMMENT_NOT_FOUND: new ClientException('评论不存在'),
 };

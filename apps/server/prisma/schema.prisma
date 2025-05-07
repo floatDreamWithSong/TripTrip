@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../prisma-generated"
+  output   = "../prisma-generated"
 }
 
 datasource db {
@@ -12,58 +12,139 @@ datasource db {
 }
 
 model User {
-  uid          Int   @id @default(autoincrement())
-  email        String @unique
-  username     String @unique
-  password     String
-  gender       Int   @default(0) // 0: 未知, 1: 男, 2: 女
-  avatar       String
-  userType     Int      @default(0) // 0: 游客, 1: 审核员, 2: 管理员
-  registerTime DateTime @default(now()) @map("register_time")
-
+  uid           Int        @id @default(autoincrement())
+  email         String     @unique
+  username      String     @unique
+  password      String
+  gender        Int        @default(0)
+  avatar        String?
+  userType      Int        @default(0)
+  registerTime  DateTime   @default(now()) @map("register_time")
+  passages      Passage[]
+  comments      Comment[]
+  likes         PassageLike[]
+  commentLikes  CommentLike[]
+  favorites     Favorite[]
+  following     UserFollow[] @relation("UserFollows")
+  followers     UserFollow[] @relation("UserFollowers")
+  
   @@map("users")
-  Passage Passage[]
 }
 
 model Passage {
-  pid          Int    @id @default(autoincrement())
-  title        String
-  content      String
-  authorId     Int
-  lastEditTime DateTime @default(now()) @map("last_edit_time")
-  publishTime   DateTime @default(now()) @map("publish_time")
-  videoUrl     String? @map("video_url")
-  status       Int     @default(0) // 0: 待审核, 1: 已通过, 2: 未通过
-  reason       String?
-  views        Int     @default(0)
-  likes        Int     @default(0)
-  author       User   @relation(fields: [authorId], references: [uid])
-  PassageImage PassageImage[]
-  tags         Tag[]  @relation("PassageToTag")
-
-  PassageToTag PassageToTag[]
+  pid           Int          @id @default(autoincrement())
+  title         String
+  content       String       @db.Text
+  authorId      Int
+  lastEditTime  DateTime     @default(now()) @map("last_edit_time")
+  publishTime   DateTime     @default(now()) @map("publish_time")
+  videoUrl      String?      @map("video_url")
+  status        Int          @default(0)
+  reason        String?
+  views         Int          @default(0)
+  coverImageUrl String
+  // 优化：移除冗余的likes字段，通过PassageLike关系统计
+  author        User         @relation(fields: [authorId], references: [uid])
+  images        PassageImage[]
+  comments      Comment[]
+  passageLikes  PassageLike[]
+  favorites     Favorite[]
+  PassageToTag  PassageToTag[]
+  
+  @@index([publishTime]) // 添加索引优化排序查询
+  @@index([lastEditTime])
+  @@map("passages")
 }
 
 model PassageImage {
-  id Int @id @default(autoincrement())
-  pid Int
+  id      Int     @id @default(autoincrement())
+  pid     Int
   passage Passage @relation(fields: [pid], references: [pid])
-  url String
+  url     String
+  
+  @@map("passage_images")
 }
 
 model Tag {
-  tid   Int     @id @default(autoincrement())
-  name  String  @unique
-  passages Passage[] @relation("PassageToTag")
-
+  tid      Int           @id @default(autoincrement())
+  name     String        @unique
   PassageToTag PassageToTag[]
+  
+  @@map("tags")
 }
 
-model PassageToTag { // 多对多关系，需要创建一个中间表
+model PassageToTag {
   passageId Int
   tagId     Int
   passage   Passage @relation(fields: [passageId], references: [pid])
   tag       Tag     @relation(fields: [tagId], references: [tid])
 
   @@id([passageId, tagId])
+  @@map("passage_tags")
+}
+
+// 新增评论系统
+model Comment {
+  cid         Int       @id @default(autoincrement())
+  content     String    @db.Text
+  userId      Int
+  passageId   Int
+  parentId    Int?      // 支持评论的评论
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  user        User      @relation(fields: [userId], references: [uid])
+  passage     Passage   @relation(fields: [passageId], references: [pid])
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [cid])
+  replies     Comment[] @relation("CommentReplies")
+  commentLikes CommentLike[]
+  
+  @@index([createdAt]) // 优化排序查询
+  @@map("comments")
+}
+
+// 新增点赞系统
+model PassageLike {
+  userId    Int
+  passageId Int
+  user      User    @relation(fields: [userId], references: [uid])
+  passage   Passage @relation(fields: [passageId], references: [pid])
+  createdAt DateTime @default(now())
+
+  @@id([userId, passageId]) // 防止重复点赞
+  @@map("passage_likes")
+}
+
+model CommentLike {
+  userId    Int
+  commentId Int
+  user      User    @relation(fields: [userId], references: [uid])
+  comment   Comment @relation(fields: [commentId], references: [cid])
+  createdAt DateTime @default(now())
+
+  @@id([userId, commentId])
+  @@map("comment_likes")
+}
+
+// 新增收藏系统
+model Favorite {
+  userId    Int
+  passageId Int
+  user      User    @relation(fields: [userId], references: [uid])
+  passage   Passage @relation(fields: [passageId], references: [pid])
+  createdAt DateTime @default(now())
+
+  @@id([userId, passageId]) // 防止重复收藏
+  @@map("favorites")
+}
+
+// 新增关注系统
+model UserFollow {
+  followerId  Int
+  followingId Int
+  follower    User @relation("UserFollowers", fields: [followerId], references: [uid])
+  following   User @relation("UserFollows", fields: [followingId], references: [uid])
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId]) // 组合主键防止重复关注
+  @@map("user_follows")
 }

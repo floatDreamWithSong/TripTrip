@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const passageTagsSchema = z.array(z.string().min(2)).min(1);
+export const passageTagsSchema = z.array(z.string().min(2));
 export const passageTextSchema = z.object({
     title: z.string().min(2),
     content: z.string().min(2),

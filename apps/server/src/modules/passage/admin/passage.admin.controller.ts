@@ -10,12 +10,22 @@ export class PassageAdminController {
   private readonly logger = new Logger(PassageAdminController.name);
   constructor(private readonly passageService: PassageService, private readonly passageAdminService: PassageAdminService) { }
 
+  /**
+   * 管理员审核文章
+   * @param body 
+   * @returns 
+   */
   @Put()
   @HttpCode(HttpStatus.OK)
   @UserType('beyondUser')
   updateByAdmin(@Body(ZodValidationPipe.passageReviewSchema) body: PassageReview) {
     return this.passageAdminService.updateByAdmin(body.pid, body.status, body.reason);
   }
+  /**
+   *  获取待审核文章列表
+   * @param query 
+   * @returns 
+   */
   @Get()
   @UserType('beyondUser')
   listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
@@ -24,6 +34,10 @@ export class PassageAdminController {
       publishTime: 'asc'
     });
   }
+  /**
+   *  获取文章审核统计数据
+   * @returns 
+   */
   @Get('statistics')
   @UserType('beyondUser')
   getReviewStatistics() {

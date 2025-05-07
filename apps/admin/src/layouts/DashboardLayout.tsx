@@ -2,18 +2,37 @@ import { Container, Header, Content, Sidebar, Dropdown, Nav, Avatar } from 'rsui
 import { useNavigate, Link } from 'react-router-dom';
 import { useThemeStore } from '../store/theme';
 import { Moon, Sun } from 'lucide-react';
+import { clearTokens } from '@/request';
+import { useUserStore } from '../store/user';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+const getUserType = (type: number) => {
+  switch (type) {
+    case 1:
+      return '管理员';
+    case 2:
+      return '审核员';
+    default:
+      return '未知';
+  }
+};
+
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
+  const userInfo = useUserStore(state => state.userInfo);
+  
+  const logout = () => {
+    clearTokens()
+    navigate('/auth/login')
+  }
 
   return (
     <Container style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header style={{ flex: '0 0 auto', padding: '0 20px', borderBottom: '1px solid var(--rs-border-primary)' }}>
+      <Header style={{ flex: '0 0 auto', borderBottom: '1px solid var(--rs-border-primary)' }}>
         <div
           style={{
             display: 'flex',
@@ -22,7 +41,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             height: '100%',
           }}
         >
-          <div className="logo">
+          <div className="logo" style={{
+            fontSize:'large',
+            fontWeight:'bold',
+            fontFamily:'sans-serif',
+            marginLeft:'20px'
+          }}>
             <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
               TripTrip
             </Link>
@@ -31,8 +55,26 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <div onClick={toggleTheme} style={{ cursor: 'pointer' }}>
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </div>
-            <Dropdown placement="bottomEnd" trigger={['click']} title={<Avatar circle />}>
-              <Dropdown.Item onClick={() => navigate('/auth/login')}>退出登录</Dropdown.Item>
+            <Dropdown 
+              placement="bottomEnd" 
+              trigger={['click']} 
+              title={
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>{userInfo?.username}</span>
+                  <span style={{ 
+                    fontSize: '12px', 
+                    color: 'white',
+                    backgroundColor: 'var(--rs-bg-active)',
+                    padding: '2px 6px',
+                    borderRadius: '4px'
+                  }}>
+                    {userInfo && getUserType(userInfo.userType)}
+                  </span>
+                  <Avatar circle src={userInfo?.avatar || undefined} />
+                </div>
+              }
+            >
+              <Dropdown.Item onClick={logout}>退出登录</Dropdown.Item>
             </Dropdown>
           </div>
         </div>

@@ -12,8 +12,9 @@ import {
 import { UserService } from './user.service';
 
 import { Public } from 'src/common/decorators/public.decorator';
-import { UserLogin, userLoginSchema, UserRegister, userRegisterSchema } from '@triptrip/utils';
+import { JwtPayload, UserLogin, userLoginSchema, UserRegister, userRegisterSchema } from '@triptrip/utils';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
+import { User } from 'src/common/decorators/user.decorator';
 
 
 @Controller('user')
@@ -44,6 +45,10 @@ export class UserController {
   @Get('info')
   @Public()
   async info(@Query('uid', ParseIntPipe) uid: number) {
-    return await this.userService.info(uid);
+    return await this.userService.publicInfo(uid);
+  }
+  @Get('self')
+  async self(@User() user: JwtPayload){
+    return await this.userService.privateInfo(user.uid)
   }
 }

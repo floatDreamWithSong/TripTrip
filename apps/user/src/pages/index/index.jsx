@@ -7,22 +7,11 @@ import TravelCard from '../../components/TravelCard';
 import chatRobot from '@/assets/chatRobot.webp';
 import './index.scss';
 
-
 // 模拟图片随机高度
-const getRandomHeight = () => 150 + Math.floor(Math.floor(Math.random()*5) * 40);
+const getRandomHeight = () => 150 + Math.floor(Math.floor(Math.random() * 5) * 40);
 
-// 共 50 条游记数据
-const TOTAL_TRAVELS = 50;
+// 页数和每页数据量
 const PAGE_SIZE = 10;
-
-const mockTravels = Array.from({ length: TOTAL_TRAVELS }, (_, i) => ({
-  id: i,
-  title: `游记标题 ${i + 1} ${'这是一个很长的标题'.repeat(Math.ceil(Math.random() * 2))}`,
-  images: [`https://picsum.photos/seed/${i + 1}/400/300`],
-  username: `用户${i + 1}`,
-  avatar: `https://picsum.photos/seed/${i + 1}/100/100`,
-  imageHeight: getRandomHeight(),
-}));
 
 export default function Index() {
   const [columns, setColumns] = useState([[], []]);
@@ -54,21 +43,50 @@ export default function Index() {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500)); // 模拟异步加载
 
-    const newTravels = mockTravels.slice(
-      (nextPage - 1) * PAGE_SIZE,
-      nextPage * PAGE_SIZE
-    );
+    try {
+      // 添加 page 和 limit 参数
+      const response = await Taro.request({
+        url: `http://127.0.0.1:4523/m1/6328758-6024136-default/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
+        method: 'GET',
+      });
 
-    const updatedTravels = [...allTravels, ...newTravels];
-    setAllTravels(updatedTravels);
+      // 打印接口返回的数据
+      console.log('Response data:', response.data);
 
-    const filtered = updatedTravels.filter(travel =>
-      travel.title.includes(searchText) ||
-      travel.username.includes(searchText)
-    );
-    setColumns(distributeItems(filtered));
+      // 确保数据存在且为有效数组
+      const mockData = response.data?.data?.list || [];
+      console.log('Mock data:', mockData);
 
-    setPage(nextPage);
+      if (mockData.length === 0) {
+        console.error('No travels data available');
+        return;
+      }
+
+      const newTravels = mockData.slice(
+        (nextPage - 1) * PAGE_SIZE,
+        nextPage * PAGE_SIZE
+      );
+
+      // 给每篇文章生成随机高度
+      const travelsWithRandomHeight = newTravels.map(travel => ({
+        ...travel,
+        imageHeight: getRandomHeight()
+      }));
+
+      const updatedTravels = [...allTravels, ...travelsWithRandomHeight];
+      setAllTravels(updatedTravels);
+
+      const filtered = updatedTravels.filter(travel =>
+        travel.title.includes(searchText) ||
+        travel.author.username.includes(searchText)
+      );
+      setColumns(distributeItems(filtered));
+
+      setPage(nextPage);
+    } catch (error) {
+      console.error('Error loading travels:', error);
+    }
+
     setLoading(false);
   }, [allTravels, searchText, distributeItems]);
 
@@ -76,7 +94,7 @@ export default function Index() {
   useEffect(() => {
     const filtered = allTravels.filter(travel =>
       travel.title.includes(searchText) ||
-      travel.username.includes(searchText)
+      travel.author.username.includes(searchText)
     );
     setColumns(distributeItems(filtered));
   }, [searchText, allTravels, distributeItems]);
@@ -94,7 +112,7 @@ export default function Index() {
 
   // 滚动到底部加载下一页
   useReachBottom(() => {
-    if (!loading && page * PAGE_SIZE < mockTravels.length) {
+    if (!loading && page * PAGE_SIZE >= allTravels.length) {
       loadTravels(page + 1);
     }
   });
@@ -102,17 +120,17 @@ export default function Index() {
   return (
     <View className="container">
       <View className="search-bar">
-      <img width="30" height="30" src={chatRobot} alt="ai-chatting" style={{marginRight:'10px'}}/>
+        <img width="30" height="30" src={chatRobot} alt="ai-chatting" style={{ marginRight: '10px' }} />
         <Input
           placeholder="搜索游记或用户"
           onInput={handleSearch}
           value={searchText}
         />
-       <Button type="primary"  shape="default" icon={<SearchOutlined />}style={{
-        width: '50px',
-    height: '30px',
-    fontSize: '16px',
-  }} />
+        <Button type="primary" shape="default" icon={<SearchOutlined />} style={{
+          width: '50px',
+          height: '30px',
+          fontSize: '16px',
+        }} />
       </View>
 
       <View className="masonry">
@@ -128,7 +146,7 @@ export default function Index() {
           </View>
         ))}
       </View>
-      {!loading && page * PAGE_SIZE >= mockTravels.length && (
+      {!loading && page * PAGE_SIZE >= allTravels.length && (
         <View className="loading-text">没有更多游记了~</View>
       )}
     </View>

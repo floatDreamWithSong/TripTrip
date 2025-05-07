@@ -4,7 +4,6 @@ import { View, Image, Text } from '@tarojs/components';
 import './TravelCard.scss';
 
 export default function TravelCard({ travel, onClick }) {
-
   return (
     <View
       className="travel-card"
@@ -12,7 +11,7 @@ export default function TravelCard({ travel, onClick }) {
       onClick={() => onClick && onClick(travel.id)}
     >
       <Image
-        src={travel.images[0]}
+        src={travel.PassageImage[0].url}
         className="travel-image"
         mode="aspectFill"
         style={{ height: `${travel.imageHeight}px` }}
@@ -21,11 +20,11 @@ export default function TravelCard({ travel, onClick }) {
         <Text className="travel-title">{travel.title}</Text>
         <View className="user-info">
           <Image
-            src={travel.avatar}
+            src={travel.author.avatar}
             className="avatar"
             mode="aspectFill"
           />
-          <Text className="username">{travel.username}</Text>
+          <Text className="username">{travel.author.username}</Text>
         </View>
       </View>
     </View>

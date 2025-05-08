@@ -39,6 +39,7 @@ model Passage {
   lastEditTime  DateTime     @default(now()) @map("last_edit_time")
   publishTime   DateTime     @default(now()) @map("publish_time")
   videoUrl      String?      @map("video_url")
+  reviewTime    DateTime?
   status        Int          @default(0)
   reason        String?
   views         Int          @default(0)

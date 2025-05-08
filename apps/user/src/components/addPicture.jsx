@@ -42,14 +42,53 @@ const UploadImages = ({ value = [], onChange }) => {
 
   return (
     <>
+      {/* <Upload
+        listType="picture-card"
+        fileList={fileList}
+        onPreview={handlePreview}
+        onChange={handleChange}
+      > 
+        {fileList.length >= 6 ? null : uploadButton}
+      </Upload> */}
       <Upload
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
+        showUploadList={{
+          showPreviewIcon: true,
+          showRemoveIcon: true,
+        }}
+        itemRender={(originNode, file, currFileList) => {
+          const isFirst = currFileList[0]?.uid === file.uid;
+
+          return (
+            <div style={{ position: 'relative' }}>
+              {originNode}
+              {isFirst && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    background: 'rgba(255, 69, 0, 0.8)',
+                    color: 'white',
+                    fontSize: 12,
+                    padding: '2px 4px',
+                    borderRadius: 4,
+                    zIndex: 10,
+                  }}
+                >
+                  封面
+                </div>
+              )}
+            </div>
+          );
+        }}
       >
         {fileList.length >= 6 ? null : uploadButton}
       </Upload>
+
       {previewImage && (
         <Image
           wrapperStyle={{ display: 'none' }}

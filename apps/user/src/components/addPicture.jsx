@@ -1,5 +1,5 @@
 // UploadImages.jsx（你当前的上传组件）
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, Upload } from 'antd';
 
 const getBase64 = file =>
@@ -10,47 +10,15 @@ const getBase64 = file =>
     reader.onerror = error => reject(error);
   });
 
-const UploadImages = ({ onChange }) => {
+const UploadImages = ({ value = [], onChange }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
-  const [fileList, setFileList] = useState([
-    // {
-    //   uid: '-1',
-    //   name: 'image.png',
-    //   status: 'done',
-    //   url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    // },
-    // {
-    //   uid: '-2',
-    //   name: 'image.png',
-    //   status: 'done',
-    //   url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    // },
-    // {
-    //   uid: '-3',
-    //   name: 'image.png',
-    //   status: 'done',
-    //   url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    // },
-    // {
-    //   uid: '-4',
-    //   name: 'image.png',
-    //   status: 'done',
-    //   url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    // },
-    // {
-    //   uid: '-xxx',
-    //   percent: 50,
-    //   name: 'image.png',
-    //   status: 'uploading',
-    //   url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-    // },
-    // {
-    //   uid: '-5',
-    //   name: 'image.png',
-    //   status: 'error',
-    // },
-  ]);
+  const [fileList, setFileList] = useState(value);
+
+  // 当外部 value 变化时更新内部 fileList
+  useEffect(() => {
+    setFileList(value);
+  }, [value]);
 
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {

@@ -1,12 +1,13 @@
-import { View, Text, Image, Checkbox as CheckBox } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { useState, useEffect } from 'react';
+import { useDidHide } from '@tarojs/taro';
 import './addTravel.scss';
 import AddPicture from '../../components/addPicture';
 import Taro, { Component } from '@tarojs/taro'
 import {
   Flex,
   Input,
-  Radio,
+  Checkbox,
   Button,
   ConfigProvider,
   Space
@@ -20,34 +21,10 @@ import {
   SyncOutlined,
   UploadOutlined
 } from '@ant-design/icons';
-// import { createStyles } from 'antd-style';
+import { submitTravel } from '../../utils/travelApi';
 import { getAccessToken } from '../../utils/request';
 
 const TextArea = Input.TextArea;
-
-// const useStyle = createStyles(({ prefixCls, css }) => ({
-//   linearGradientButton: css`
-//     &.${prefixCls}-btn-primary:not([disabled]):not(.${prefixCls}-btn-dangerous) {
-//       > span {
-//         position: relative;
-//       }
-
-//       &::before {
-//         content: '';
-//         background: linear-gradient(135deg, #6253e1, #04befe);
-//         position: absolute;
-//         inset: -1px;
-//         opacity: 1;
-//         transition: all 0.3s;
-//         border-radius: inherit;
-//       }
-
-//       &:hover::before {
-//         opacity: 0;
-//       }
-//     }
-//   `,
-// }));
 
 export default function myTravels() {
 
@@ -76,6 +53,26 @@ export default function myTravels() {
           // 如果获取到访问令牌，可以进一步验证令牌的有效性
           // 这里可以根据需要添加更多的验证逻辑
           console.log('用户已登录');
+
+          // 读取草稿
+          const draft = Taro.getStorageSync('travel_draft');
+          if (draft) {
+            Taro.showModal({
+              title: '提示',
+              content: '检测到草稿内容，是否恢复？',
+              success: function (res) {
+                if (res.confirm) {
+                  setTitle(draft.title || '');
+                  setValue(draft.value || '');
+                  setImages(draft.images || []);
+                  setVideoFile(draft.videoFile || null);
+                  setAgreement(draft.agreement || false);
+                } else {
+                  Taro.removeStorageSync('travel_draft'); // 用户取消就删除草稿
+                }
+              }
+            });
+          }
         }
       };
 
@@ -84,82 +81,20 @@ export default function myTravels() {
 
   }, []);
 
-  const submitToBackend = async () => {
-    try {
-      const formData = new FormData();
 
-      formData.append('title', title);
-      formData.append('content', value);
-      formData.append('tags', '示例标签');
-
-      console.log("准备提交的图片列表：", images);
-
-      images.forEach((image, index) => {
-        const file = image.originFileObj;
-        if (file instanceof File) {
-          const fileToHttp = URL.createObjectURL(file)
-          formData.append('images', fileToHttp);
-          // formData.append('images', file);
-          console.log(`添加图片 ${index + 1}:`, file.name);
-        } else {
-          console.warn(`第 ${index + 1} 张图片没有 originFileObj`);
-        }
-      });
-
-      if (videoFile instanceof File) {
-        formData.append('video', videoFile);
-        console.log('添加视频文件:', videoFile.name);
-      }
-
-      console.log('FormData内容：');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
-      if (!title.trim()) {
-        Taro.showToast({ title: '标题不能为空', icon: 'none', duration: 2000 });
-        return false;
-      }
-
-      if (!value.trim()) {
-        Taro.showToast({ title: '内容不能为空', icon: 'none', duration: 2000 });
-        return false;
-      }
-
-      if (images.length === 0) {
-        Taro.showToast({ title: '请上传图片', icon: 'none', duration: 2000 });
-        return false;
-      }
-
-      if (!agreement) {
-        Taro.showToast({ title: '请同意发布规则', icon: 'none', duration: 2000 });
-        return;
-      }
-
-
-      const response = await fetch('https://your.api.host/passage/user', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Taro.showToast({ title: '发布成功', icon: 'success', duration: 2000 });
-        console.log('发布成功:', result);
-        return true;
-      } else {
-        Taro.showToast({ title: '发布失败', icon: 'none', duration: 2000 });
-        console.error('后端错误:', result);
-      return false;
-      }
-    } catch (err) {
-      Taro.showToast({ title: '网络异常', icon: 'none', duration: 2000 });
-      console.error('网络异常:', err);
-      return false;
+  useDidHide(() => {
+    const draft = Taro.getStorageSync('travel_draft');
+    if (!draft) {
+      setTitle('');
+      setValue('');
+      setImages([]);
+      setVideoFile(null);
+      setAgreement(false);
+      setFiles([]);
+      setFile(null);
+      console.log('未存草稿，清空数据');
     }
-  };
-
+  });
 
   const [files, setFiles] = useState([])
   const [file, setFile] = useState(null)
@@ -169,6 +104,7 @@ export default function myTravels() {
   const [value, setValue] = useState('');
   const [agreement, setAgreement] = useState(false);
   const [loadings, setLoadings] = useState([]);
+  const [savedAsDraft, setSavedAsDraft] = useState(false);
 
 
   const redPackage = (Math.random() * 10).toFixed(1);
@@ -189,17 +125,40 @@ export default function myTravels() {
       newLoadings[index] = true;
       return newLoadings;
     });
-  
+
+    const MIN_LOADING_TIME = 800; // 至少显示 800ms
+    const startTime = Date.now();
+
     try {
-      const success = await submitToBackend(); // ✅ 等待异步上传结果
-  
+      const success = await submitTravel({
+        title, value, images, videoFile, agreement
+      });
+
+      const duration = Date.now() - startTime;
+      const remaining = MIN_LOADING_TIME - duration;
+
+      if (remaining > 0) {
+        await new Promise(resolve => setTimeout(resolve, remaining));
+      }
+
       if (success) {
+        Taro.removeStorageSync('travel_draft');
+
         Taro.showToast({
           title: '发布成功',
           icon: 'success',
           duration: 2000
         });
-  
+
+        // 清空逻辑
+        setTitle('');
+        setValue('');
+        setImages([]);
+        setVideoFile(null);
+        setAgreement(false);
+        setFiles([]);
+        setFile(null);
+
         setTimeout(() => {
           Taro.switchTab({
             url: '/pages/myTravels/myTravels'
@@ -214,21 +173,6 @@ export default function myTravels() {
       });
     }
   };
-  
-
-  // const onUpload = () => {
-  //   chooseImage({
-  //     count: 1,
-  //     sizeType: ["original", "compressed"],
-  //     sourceType: ["album", "camera"],
-  //   }).then(({ tempFiles }) => {
-  //     setFile({
-  //       url: tempFiles[0].path,
-  //       type: tempFiles[0].type,
-  //       name: tempFiles[0].originalFileObj?.name,
-  //     });
-  //   });
-  // };
 
   return (
     <View>
@@ -241,12 +185,15 @@ export default function myTravels() {
         元现金红包
       </View>
       <View className="photos-container">
-        <AddPicture onChange={handleImagesChange} />
+        <AddPicture
+          value={images}
+          onChange={handleImagesChange}
+        />
       </View>
       <View className='message-container'>
         <Flex vertical gap={12}>
           <Input
-            // value={title}
+            value={title}
             onChange={e => {
               setTitle(e.target.value)
               console.log(title)
@@ -262,7 +209,7 @@ export default function myTravels() {
             style={{ height: 120, resize: 'none' }}
           /> */}
           <TextArea
-            // value={value}
+            value={value}
             onChange={e => {
               setValue(e.target.value)
               console.log(value)
@@ -314,19 +261,40 @@ export default function myTravels() {
             value={agreement}
             onValueChange={setChecked => setAgreement(setChecked)}
           /> */}
-          <Radio defaultChecked={agreement} onChange={() => setAgreement(!agreement)}>
+          <Checkbox
+            checked={agreement} // ✅ 绑定 state，成为受控组件
+            onChange={(e) => setAgreement(e.target.checked)} // 注意这里要用 e.target.checked
+          >
             <Text className="checkboxText">阅读并同意《携程社区发布规则》</Text>
-          </Radio>
+          </Checkbox>
 
         </View>
       </View>
       <View className='publish-container'>
-        <View className='draft'>
+        <View className='draft' onClick={() => {
+          const draftData = {
+            title,
+            value,
+            images,
+            videoFile,
+            agreement
+          };
+          Taro.setStorageSync('travel_draft', draftData);
+          Taro.showToast({
+            title: '已存为草稿',
+            icon: 'success',
+            duration: 1500
+          });
+          setTimeout(() => {
+            Taro.navigateTo({
+              url: '/pages/myTravels/myTravels'
+            });
+          }, 1500)
+        }}>
           <PaperClipOutlined />
-          <View className='draftText'>
-            存草稿
-          </View>
+          <View className='draftText'>存草稿</View>
         </View>
+
         <View className='publish'>
           <Button
             type="primary"

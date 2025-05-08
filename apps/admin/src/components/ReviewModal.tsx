@@ -10,6 +10,7 @@ import ArrowLeftLine from '@rsuite/icons/ArrowLeftLine';
 import ArrowRightLine from '@rsuite/icons/ArrowRightLine';
 import CloseIcon from '@rsuite/icons/Close';
 import '../styles/ReviewModal.css';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 // 初始化markdown解析器
 const md = new MarkdownIt();
@@ -44,6 +45,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
   const [previewVisible, setPreviewVisible] = useState(false);
   const toaster = useToaster();
   const userData = useUserStore(state => state.userInfo);
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // 获取文章详情
   useEffect(() => {
@@ -132,7 +134,12 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
 
   return (
     <>
-      <Modal size="lg" open={open} onClose={onClose}>
+      <Modal 
+        size={isMobile ? "full" : "lg"} 
+        open={open} 
+        onClose={onClose}
+        className={isMobile ? "mobile-review-modal" : ""}
+      >
         <Modal.Header>
           <Modal.Title>{!shouldShowSkeleton ? review?.title : <Placeholder.Paragraph rows={1} active style={{ width: 200 }} />}</Modal.Title>
         </Modal.Header>

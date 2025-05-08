@@ -7,7 +7,6 @@
 .dashboard-header {
   flex: 0 0 auto;
   border-bottom: 1px solid var(--rs-border-primary);
-  z-index: 1100;
   position: relative;
 }
 
@@ -34,7 +33,6 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-right: 20px;
 }
 
 .theme-toggle, .sidebar-toggle {

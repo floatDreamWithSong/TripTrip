@@ -1,0 +1,23 @@
+.stats-container {
+  padding: 20px;
+}
+
+.stats-loader {
+  padding: 20px;
+  text-align: center;
+}
+
+.stats-cards {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.stats-card {
+  flex: 1;
+}
+
+.chart-container {
+  margin-top: 20px;
+} 

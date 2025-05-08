@@ -4,6 +4,7 @@ import { useQuery } from 'react-query';
 import { getStatistics } from '../../request/stat';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import '../../styles/Statistics.css';
 
 const Statistics = () => {
   const { data: statsData, isLoading } = useQuery(['statistics'], getStatistics, {
@@ -40,35 +41,35 @@ const Statistics = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
+      <div className="stats-loader">
         <Loader content="加载中..." />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="stats-container">
       <Stack spacing={20} direction="column" alignItems="stretch">
-        <div style={{ width: '100%', display:'flex',flexDirection:'row', gap:'1rem' }}>
-          <Panel bordered style={{ flex: '1' }}>
+        <div className="stats-cards">
+          <Panel bordered className="stats-card">
             <h5>总申核数</h5>
             <h2 ref={totalRef}>0</h2>
           </Panel>
-          <Panel bordered style={{ flex: '1' }}>
+          <Panel bordered className="stats-card">
             <h5>总通过数</h5>
             <h2 ref={approvedRef}>0</h2>
           </Panel>
-          <Panel bordered style={{ flex: '1' }}>
+          <Panel bordered className="stats-card">
             <h5>总拒绝数</h5>
             <h2 ref={rejectedRef}>0</h2>
           </Panel>
-          <Panel bordered style={{ flex: '1' }}>
+          <Panel bordered className="stats-card">
             <h5>待处理数</h5>
             <h2 ref={pendingRef}>0</h2>
           </Panel>
         </div>
 
-        <Panel header="七日审核数据" bordered>
+        <Panel header="七日审核数据" bordered className="chart-container">
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={statsData?.data.data || []}>
               <CartesianGrid strokeDasharray="3 3" />

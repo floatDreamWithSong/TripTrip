@@ -21,19 +21,7 @@ export class PassageAdminService {
         }
       }
     })
-    // 计算前7天内每天的通过和拒绝数量
-    /**
-     * 例如；
-     *   const data = [
-    { day: '周一', submitted: 40, approved: 24 },
-    { day: '周二', submitted: 30, approved: 13 },
-    { day: '周三', submitted: 20, approved: 18 },
-    { day: '周四', submitted: 27, approved: 23 },
-    { day: '周五', submitted: 18, approved: 12 },
-    { day: '周六', submitted: 23, approved: 19 },
-    { day: '周日', submitted: 34, approved: 32 },
-  ];
-     */
+
     const data: { day: string, submitted: number, approved: number, rejected: number }[] = [];
     const dates = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
@@ -41,8 +29,24 @@ export class PassageAdminService {
       return date;
     });
 
-    const dailyStats = await this.prismaService.passage.groupBy({
-      by: ['status', 'publishTime'],
+    // 获取审核统计数据（基于reviewTime）
+    const reviewStats = await this.prismaService.passage.groupBy({
+      by: ['status', 'reviewTime'],
+      where: {
+        reviewTime: {
+          not: null,
+          gte: dates[0],
+          lt: new Date(dates[6].getFullYear(), dates[6].getMonth(), dates[6].getDate() + 1)
+        }
+      },
+      _count: {
+        status: true
+      }
+    });
+
+    // 获取提交统计数据（基于publishTime）
+    const submitStats = await this.prismaService.passage.groupBy({
+      by: ['publishTime'],
       where: {
         publishTime: {
           gte: dates[0],
@@ -58,14 +62,23 @@ export class PassageAdminService {
       const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const end = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
       
-      const dayStats = dailyStats.filter(stat => {
+      // 统计当天的审核数据
+      const dayReviewStats = reviewStats.filter(stat => {
+        if (!stat.reviewTime) return false;
+        const statDate = new Date(stat.reviewTime);
+        return statDate >= start && statDate < end;
+      });
+
+      // 统计当天的提交数据
+      const daySubmitStats = submitStats.filter(stat => {
+        if (!stat.publishTime) return false;
         const statDate = new Date(stat.publishTime);
         return statDate >= start && statDate < end;
       });
 
-      const approved = dayStats.filter(stat => stat.status === PASSAGE_STATUS.APPROVED).reduce((acc, stat) => acc + stat._count.status, 0);
-      const rejected = dayStats.filter(stat => stat.status === PASSAGE_STATUS.REJECTED).reduce((acc, stat) => acc + stat._count.status, 0);
-      const submitted = dayStats.reduce((acc, stat) => acc + stat._count.status, 0);
+      const approved = dayReviewStats.filter(stat => stat.status === PASSAGE_STATUS.APPROVED).reduce((acc, stat) => acc + stat._count.status, 0);
+      const rejected = dayReviewStats.filter(stat => stat.status === PASSAGE_STATUS.REJECTED).reduce((acc, stat) => acc + stat._count.status, 0);
+      const submitted = daySubmitStats.reduce((acc, stat) => acc + stat._count.status, 0);
 
       data.push({
         day: date.toLocaleDateString('zh-CN', { weekday: 'short' }),
@@ -93,6 +106,7 @@ export class PassageAdminService {
       data: {
         status: status,
         reason: reason,
+        reviewTime: new Date(),
       }
     })
     return;

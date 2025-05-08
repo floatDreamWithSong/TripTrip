@@ -1,26 +1,17 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Panel, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
-import { PageEnd } from '@rsuite/icons'
+import { List, Button, Message, useToaster, Loader } from 'rsuite';
 import gsap from 'gsap';
 import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
 import { useQuery } from 'react-query';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
-import ReviewModal from './ReviewModal';
-
-interface Review {
-  id: number;
-  title: string;
-  author: string;
-  coverImage: string;
-  images: string[];
-  video?: string;
-  content: string;
-  description: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+import ReviewModal from '@/components/ReviewModal';
+import { Review } from '@/types/review';
+import ReviewListItem from '@/components/ReviewListItem';
+import '../../styles/ReviewList.css';
 
 const ReviewList = () => {
+  const LIMIT_LENGTH = 20;
   const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -35,7 +26,6 @@ const ReviewList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['pendingList', page],
     queryFn: () => getPendingList({ page, limit: 10 }),
-    keepPreviousData: true,
   });
 
   // 数据转换和状态更新
@@ -48,17 +38,29 @@ const ReviewList = () => {
         coverImage: passage.coverImageUrl || '',
         images: [],
         content: '',
-        description: passage.PassageToTag?.map(pt => pt.tag.name).join(', ') || '',
+        description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
         status: 'pending',
       }));
-
+      if(newReviews.length === 0) {
+        toaster.push(
+          <Message type="info">
+            已经到底了~
+          </Message>
+        );
+        setHasMore(false)
+      }
+      
       if (page === 1) {
         setReviews(newReviews as Review[]);
       } else {
-        setReviews(prev => [...prev, ...newReviews] as Review[]);
+        setReviews(prev => {
+          // 获取已有的ID集合
+          const existingIds = new Set(prev.map(review => review.id));
+          // 过滤掉已经存在的ID
+          const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
+          return [...prev, ...uniqueNewReviews] as Review[];
+        });
       }
-
-      setHasMore(newReviews.length === 10);
     }
   }, [data, page]);
 
@@ -160,7 +162,7 @@ const ReviewList = () => {
     const marginTop = parseFloat(computedStyle.marginTop);
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
-    
+
     if (isDelete) {
       await deletePassage(selectedReviewId);
     } else {
@@ -170,7 +172,7 @@ const ReviewList = () => {
         reason: isApproved ? void 0 : '审核未通过'
       });
     }
-    
+
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,
@@ -218,73 +220,39 @@ const ReviewList = () => {
     );
   };
 
+  const handleSelectReview = (id: number) => {
+    setSelectedReviewId(id);
+    setOpen(true);
+  };
+
   return (
-    <div>
-      <List hover>
+    <>
+      <List hover style={{
+        overflow:'hidden'
+      }} >
         {reviews.map((review, index) => (
-          <List.Item
+          <ReviewListItem
             key={review.id}
-            style={{ cursor: 'pointer' }}
-            onClick={() => {
-              setSelectedReviewId(review.id);
-              setOpen(true);
-            }}
-          >
-            <div
-              ref={(el) => {
-                if (index === reviews.length - 1) {
-                  lastElementRef.current = el;
-                }
-                listItemsRef.current[review.id] = el;
-              }}
-            >
-              <Panel style={{ padding: '0px' }} >
-                <Stack spacing={20}>
-                  <div style={{ position: 'relative', width: 200, height: 200 }}>
-                    {!imageLoaded[review.id] && (
-                      <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
-                    )}
-                    <img
-                      src={review.coverImage}
-                      alt={review.title}
-                      style={{
-                        height: 200,
-                        width: 200,
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        display: imageLoaded[review.id] ? 'block' : 'none'
-                      }}
-                      onLoad={() => setImageLoaded(prev => ({ ...prev, [review.id]: true }))}
-                    />
-                  </div>
-                  <Stack direction="column" spacing={10} style={{ flex: 1 }}>
-                    {!imageLoaded[review.id] ? (
-                      <>
-                        <Placeholder.Paragraph rows={3} active />
-                      </>
-                    ) : (
-                      <>
-                        <h4>{review.title}</h4>
-                        <p>作者：{review.author}</p>
-                        <p>标签：{review.description}</p>
-                      </>
-                    )}
-                  </Stack>
-                </Stack>
-              </Panel>
-            </div>
-          </List.Item>
+            review={review}
+            index={index}
+            isLastItem={index === reviews.length - 1}
+            imageLoaded={imageLoaded}
+            setImageLoaded={setImageLoaded}
+            lastElementRef={lastElementRef}
+            listItemsRef={listItemsRef}
+            onSelectReview={handleSelectReview}
+          />
         ))}
       </List>
 
       {isLoading && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
+        <div className="review-list-loader">
           <Loader content="加载中..." />
         </div>
       )}
 
       {isError && (
-        <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
+        <div className="review-list-error">
           {error instanceof Error ? error.message : '加载失败'}
           <Button appearance="link" onClick={resetData}>
             重试
@@ -292,19 +260,15 @@ const ReviewList = () => {
         </div>
       )}
 
-      {!hasMore && reviews.length > 0 && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
-        </div>
-      )}
 
-      <ReviewModal 
+
+      <ReviewModal
         passageId={selectedReviewId}
         open={open}
         onClose={() => setOpen(false)}
         handleReview={handleReview}
       />
-    </div>
+    </>
   );
 };
 

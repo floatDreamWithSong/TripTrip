@@ -73,9 +73,7 @@
 }
 
 .dashboard-sidebar.collapsed {
-  width: 0;
-  transform: translateX(-100%);
-  overflow: hidden;
+  display: none;
 }
 
 .dashboard-content {

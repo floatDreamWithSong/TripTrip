@@ -226,7 +226,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                     </Carousel>
                     
                     {/* 轮播图左右切换按钮 */}
-                    {(review?.video || review?.images.length > 0) && (
+                    {(review?.video || review?.images.length > 1) && (
                       <>
                         <IconButton 
                           icon={<ArrowLeftLine />} 
@@ -247,25 +247,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   </div>
                 ) : (
                   <div className="cover-container">
-                    {review?.coverImage ? (
-                      <>
-                        {!imageLoaded['cover'] && (
-                          <Placeholder.Graph active style={{ width: '90%', height: '80%' }} />
-                        )}
-                        <img 
-                          src={review.coverImage}
-                          alt={review.title}
-                          className="cover-image"
-                          style={{
-                            opacity: imageLoaded['cover'] ? 1 : 0
-                          }}
-                          onLoad={() => setImageLoaded(prev => ({ ...prev, 'cover': true }))}
-                          onClick={() => handleImagePreview(review.coverImage)}
-                        />
-                      </>
-                    ) : (
-                      <div>暂无图片</div>
-                    )}
+                      暂无图片
                   </div>
                 )}
               </div>

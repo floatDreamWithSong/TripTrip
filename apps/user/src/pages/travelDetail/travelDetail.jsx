@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Image, Swiper, SwiperItem, Input } from '@tarojs/components';
+import { LikeOutlined,CommentOutlined, ShareAltOutlined, HeartOutlined } from '@ant-design/icons';
+import TravelTag from '@/components/TravelTag'
 import './travelDetail.scss';
-import { LikeOutlined,CommentOutlined, ShareAltOutlined, HeartOutlined } from '@ant-design/icons'; // 使用 Ant Design 的 Heart 图标
 const TravelDetail = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
@@ -172,7 +173,8 @@ const TravelDetail = () => {
           </SwiperItem>
         ))}
       </Swiper>
-
+{/* 标签部分 */}
+<View className='tags-container'><TravelTag></TravelTag></View>
       {/* 内容区域 */}
       <View className="content-container">
         <Text className="content-title">{articleData.title}</Text>

@@ -9,8 +9,7 @@ import { PendingReviewPassages } from '@/types/passage';
 import ReviewModal from '@/components/ReviewModal';
 import { Review } from '@/types/review';
 import ReviewListItem from '@/components/ReviewListItem';
-
-
+import '../../styles/ReviewList.css';
 
 const ReviewList = () => {
   const [page, setPage] = useState(1);
@@ -234,13 +233,13 @@ const ReviewList = () => {
       </List>
 
       {isLoading && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
+        <div className="review-list-loader">
           <Loader content="加载中..." />
         </div>
       )}
 
       {isError && (
-        <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
+        <div className="review-list-error">
           {error instanceof Error ? error.message : '加载失败'}
           <Button appearance="link" onClick={resetData}>
             重试
@@ -249,7 +248,7 @@ const ReviewList = () => {
       )}
 
       {!hasMore && reviews.length > 0 && (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
+        <div className="review-list-end">
           <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
         </div>
       )}

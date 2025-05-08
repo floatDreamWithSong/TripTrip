@@ -1,5 +1,6 @@
 import { Review } from "@/types/review";
 import { List, Panel, Stack, Placeholder } from "rsuite";
+import "../styles/ReviewListItem.css";
 
 export interface ReviewListItemProps {
   review: Review;
@@ -23,7 +24,7 @@ const ReviewListItem = ({
 }: ReviewListItemProps) => {
   return (
     <List.Item
-      style={{ cursor: 'pointer' }}
+      className="review-list-item"
       onClick={() => onSelectReview(review.id)}
     >
       <div
@@ -34,26 +35,23 @@ const ReviewListItem = ({
           listItemsRef.current[review.id] = el;
         }}
       >
-        <Panel style={{ padding: '0px' }} >
+        <Panel className="review-item-panel">
           <Stack spacing={20}>
-            <div style={{ position: 'relative', width: 200, height: 200 }}>
+            <div className="review-item-image-container">
               {!imageLoaded[review.id] && (
                 <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
               )}
               <img
                 src={review.coverImage}
                 alt={review.title}
+                className="review-item-image"
                 style={{
-                  height: 200,
-                  width: 200,
-                  borderRadius: '8px',
-                  objectFit: 'cover',
                   display: imageLoaded[review.id] ? 'block' : 'none'
                 }}
                 onLoad={() => setImageLoaded(prev => ({ ...prev, [review.id]: true }))}
               />
             </div>
-            <Stack direction="column" spacing={10} style={{ flex: 1 }}>
+            <Stack direction="column" spacing={10} className="review-item-content">
               {!imageLoaded[review.id] ? (
                 <>
                   <Placeholder.Paragraph rows={3} active />

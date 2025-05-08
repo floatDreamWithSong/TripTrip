@@ -1,0 +1,72 @@
+.dashboard-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--rs-border-primary);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.logo {
+  font-size: large;
+  font-weight: bold;
+  font-family: sans-serif;
+  margin-left: 20px;
+}
+
+.logo a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.theme-toggle {
+  cursor: pointer;
+}
+
+.user-type-badge {
+  font-size: 12px;
+  color: white;
+  background-color: var(--rs-bg-active);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-body {
+  flex: 1 1 auto;
+  display: flex;
+  overflow: hidden;
+}
+
+.dashboard-sidebar {
+  flex: 0 0 auto;
+  width: 200px;
+  border-right: 1px solid var(--rs-border-primary);
+  padding: 20px 0;
+}
+
+.dashboard-content {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 20px;
+} 

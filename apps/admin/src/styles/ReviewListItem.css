@@ -1,0 +1,24 @@
+.review-list-item {
+  cursor: pointer;
+}
+
+.review-item-panel {
+  padding: 0;
+}
+
+.review-item-image-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.review-item-image {
+  height: 200px;
+  width: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.review-item-content {
+  flex: 1;
+} 

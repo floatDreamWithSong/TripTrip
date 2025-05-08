@@ -1,0 +1,15 @@
+.review-list-loader {
+  text-align: center;
+  padding: 20px;
+}
+
+.review-list-error {
+  text-align: center;
+  padding: 20px;
+  color: red;
+}
+
+.review-list-end {
+  text-align: center;
+  padding: 20px;
+} 

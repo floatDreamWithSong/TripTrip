@@ -1,5 +1,5 @@
 import { View, Text, Image } from '@tarojs/components';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDidHide } from '@tarojs/taro';
 import './addTravel.scss';
 import AddPicture from '../../components/addPicture';
@@ -10,7 +10,8 @@ import {
   Checkbox,
   Button,
   ConfigProvider,
-  Space
+  Space,
+  Modal
 } from 'antd';
 import {
   FileTextOutlined,
@@ -31,59 +32,74 @@ export default function myTravels() {
   useEffect(() => {
     console.log('addTravel页面加载完成')
 
-    // 显示组件加载完成提示，并设置两秒后消失
-    Taro.showToast({
-      title: '请先登录！',
-      icon: 'loading',
-      duration: 2000
-    });
-
     // 设置两秒后关闭提示
-    setTimeout(() => {
-      const checkLoginStatus = async () => {
-        const accessToken = await getAccessToken();
-        if (!accessToken) {
-          // 如果没有获取到访问令牌，跳转到登录页面
-          // Taro.showToast({
-          //   title: '未登录，请先登录',
-          //   icon: 'none'
-          // });
+    const checkLoginStatus = async () => {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        // 显示组件加载完成提示，并设置两秒后消失
+        Taro.showToast({
+          title: '请先登录！',
+          icon: 'loading',
+          duration: 2000
+        });
+        setTimeout(() => {
           Taro.navigateTo({ url: '/pages/login/index' });
-        } else {
-          // 如果获取到访问令牌，可以进一步验证令牌的有效性
-          // 这里可以根据需要添加更多的验证逻辑
-          console.log('用户已登录');
+        }, 2000)
+      } else {
+        // 如果获取到访问令牌，可以进一步验证令牌的有效性
+        // 这里可以根据需要添加更多的验证逻辑
+        console.log('用户已登录');
 
-          // 读取草稿
-          const draft = Taro.getStorageSync('travel_draft');
-          if (draft) {
-            Taro.showModal({
-              title: '提示',
-              content: '检测到草稿内容，是否恢复？',
-              success: function (res) {
-                if (res.confirm) {
-                  setTitle(draft.title || '');
-                  setValue(draft.value || '');
-                  setImages(draft.images || []);
-                  setVideoFile(draft.videoFile || null);
-                  setAgreement(draft.agreement || false);
-                } else {
-                  Taro.removeStorageSync('travel_draft'); // 用户取消就删除草稿
-                }
+        // 读取草稿
+        const draft = Taro.getStorageSync('travel_draft');
+        if (draft) {
+          Taro.showModal({
+            title: '提示',
+            content: '检测到草稿内容，是否恢复？',
+            success: function (res) {
+              if (res.confirm) {
+                setTitle(draft.title || '');
+                setValue(draft.value || '');
+                setImages(draft.images || []);
+                setVideoFile(draft.videoFile || null);
+                setAgreement(draft.agreement || false);
+                setTags(draft.tags || []);
+              } else {
+                Taro.removeStorageSync('travel_draft'); // 用户取消就删除草稿
               }
-            });
-          }
+            }
+          });
         }
-      };
+      }
+    };
 
-      checkLoginStatus();
-    }, 2000);
+    checkLoginStatus();
 
   }, []);
 
-
   useDidHide(() => {
     const draft = Taro.getStorageSync('travel_draft');
+    const nextPageUrl = Taro.getStorageSync('next_page_url') || '';
+
+    const isLoginPage = nextPageUrl.includes('/pages/login/index');
+
+    const hasUnsavedContent =
+      title.trim() !== '' ||
+      value.trim() !== '' ||
+      images.length !== 0 ||
+      videoFile !== null ||
+      tags.length !== 0;
+
+    if (hasUnsavedContent && !draft && !isLoginPage) {
+      setTimeout(() => {
+        Taro.showToast({
+          title: '未存草稿，内容清空',
+          icon: 'none',
+          duration: 2000,
+        });
+      });
+    }
+
     if (!draft) {
       setTitle('');
       setValue('');
@@ -92,9 +108,33 @@ export default function myTravels() {
       setAgreement(false);
       setFiles([]);
       setFile(null);
+      setTags([]);
       console.log('未存草稿，清空数据');
     }
+
+    // 清除记录，避免影响下一次跳转
+    Taro.removeStorageSync('next_page_url');
   });
+
+  // const safeNavigate = (url) => {
+  //   Taro.setStorageSync('next_page_url', url); // 记录即将跳转的页面
+  //   Taro.navigateTo({ url });
+  // };
+
+  const safeNavigate = (url) => {
+    const isLoginPage = url.includes('/pages/login/index');
+    if (isLoginPage) {
+      Taro.showToast({
+        title: '请先登录！',
+        icon: 'loading',
+        duration: 2000
+      });
+    }
+    setTimeout(() => {
+      Taro.navigateTo({ url });
+    }, 2000);
+  };
+
 
   const [files, setFiles] = useState([])
   const [file, setFile] = useState(null)
@@ -102,13 +142,20 @@ export default function myTravels() {
   const [videoFile, setVideoFile] = useState(null);
   const [title, setTitle] = useState('');
   const [value, setValue] = useState('');
+  const [tags, setTags] = useState([]);
   const [agreement, setAgreement] = useState(false);
   const [loadings, setLoadings] = useState([]);
   const [savedAsDraft, setSavedAsDraft] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // 控制Modal显示
+  const [selectedTagOptions, setSelectedTagOptions] = useState([]); // 当前选中的标签
 
 
-  const redPackage = (Math.random() * 10).toFixed(1);
+
+  // const redPackage = (Math.random() * 10).toFixed(1);
+  const redPackage = 2.5;
   // const { styles } = useStyle();
+  const allTagOptions = ['风景', '美食', '亲子', '情侣', '古镇', '露营', '轻徒步', '民宿体验'];
+
 
   const onChange = (files) => {
     setFiles(files);
@@ -120,6 +167,21 @@ export default function myTravels() {
   };
 
   const enterLoading = async index => {
+    // const accessToken = await getAccessToken();
+    // if (!accessToken) {
+    //   Taro.setStorageSync('travel_draft', {
+    //     title,
+    //     value,
+    //     images,
+    //     videoFile,
+    //     agreement,
+    //   });
+
+    //   safeNavigate('/pages/login/index');
+
+    //   return; // 阻止后续提交逻辑
+    // }
+
     setLoadings(prevLoadings => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
@@ -131,7 +193,7 @@ export default function myTravels() {
 
     try {
       const success = await submitTravel({
-        title, value, images, videoFile, agreement
+        title, value, images, videoFile, agreement, tags
       });
 
       const duration = Date.now() - startTime;
@@ -156,6 +218,7 @@ export default function myTravels() {
         setImages([]);
         setVideoFile(null);
         setAgreement(false);
+        setTags([]);
         setFiles([]);
         setFile(null);
 
@@ -172,6 +235,17 @@ export default function myTravels() {
         return newLoadings;
       });
     }
+  };
+
+  const handleAddTags = (newTags) => {
+    const uniqueTags = Array.from(new Set([...tags, ...newTags]));
+
+    setTags(uniqueTags);
+  };
+
+
+  const handleRemoveTag = (tagToRemove) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -196,7 +270,7 @@ export default function myTravels() {
             value={title}
             onChange={e => {
               setTitle(e.target.value)
-              console.log(title)
+              // console.log(title)
             }}
             placeholder="填写标题更容易上精选"
             variant="borderless"
@@ -212,7 +286,7 @@ export default function myTravels() {
             value={value}
             onChange={e => {
               setValue(e.target.value)
-              console.log(value)
+              // console.log(value)
             }}
             showCount
             maxLength={1000}
@@ -222,6 +296,17 @@ export default function myTravels() {
           />
         </Flex>
       </View>
+      {tags.length > 0 && (
+        <View className="tagDisplay">
+          {tags.map(tag => (
+            <View key={tag} className="tagItem">
+              <Text className="tagText">#{tag}</Text>
+              <Text className="removeTag" onClick={() => handleRemoveTag(tag)}>❌</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       <View className="bottom-container">
         {/* 标签区域 */}
         <View className="tags">
@@ -229,9 +314,16 @@ export default function myTravels() {
             <FileTextOutlined className='tagIcon' />
             <Text className="tag">文字模板 </Text>
           </View>
-          <View className="tagButton" onPress={() => console.log('话题')}>
+          {/* <View className="tagButton" onClick={() => handleAddTag("风景")}>
+            <Text className="tag"># 话题 </Text>
+          </View> */}
+          <View className="tagButton" onClick={() => {
+            setSelectedTagOptions(tags);
+            setIsModalOpen(true)}
+          }>
             <Text className="tag"># 话题 </Text>
           </View>
+
         </View>
 
         {/* 内容区域 */}
@@ -307,6 +399,29 @@ export default function myTravels() {
           </Button>
         </View>
       </View>
+      <Modal
+        title="选择话题标签"
+        open={isModalOpen}
+        onOk={() => {
+          // selectedTagOptions.forEach(tag => handleAddTag(tag));
+          handleAddTags(selectedTagOptions); // 批量添加标签
+          setIsModalOpen(false);
+        }}
+        onCancel={() => setIsModalOpen(false)}
+      >
+        <Checkbox.Group
+          style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+          value={selectedTagOptions}
+          onChange={setSelectedTagOptions}
+        >
+          {allTagOptions.map(tag => (
+            <Checkbox key={tag} value={tag}>
+              #{tag}
+            </Checkbox>
+          ))}
+        </Checkbox.Group>
+      </Modal>
+
     </View>
   )
 }

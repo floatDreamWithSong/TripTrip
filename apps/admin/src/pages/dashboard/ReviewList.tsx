@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { List, Button, Message, useToaster, Loader } from 'rsuite';
-import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
 import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
 import { useQuery } from 'react-query';
@@ -12,6 +11,7 @@ import ReviewListItem from '@/components/ReviewListItem';
 import '../../styles/ReviewList.css';
 
 const ReviewList = () => {
+  const LIMIT_LENGTH = 20;
   const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -26,7 +26,6 @@ const ReviewList = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['pendingList', page],
     queryFn: () => getPendingList({ page, limit: 10 }),
-    keepPreviousData: true,
   });
 
   // 数据转换和状态更新
@@ -42,15 +41,26 @@ const ReviewList = () => {
         description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
         status: 'pending',
       }));
-      console.log(newReviews.description,'?')
-
+      if(newReviews.length === 0) {
+        toaster.push(
+          <Message type="info">
+            已经到底了~
+          </Message>
+        );
+        setHasMore(false)
+      }
+      
       if (page === 1) {
         setReviews(newReviews as Review[]);
       } else {
-        setReviews(prev => [...prev, ...newReviews] as Review[]);
+        setReviews(prev => {
+          // 获取已有的ID集合
+          const existingIds = new Set(prev.map(review => review.id));
+          // 过滤掉已经存在的ID
+          const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
+          return [...prev, ...uniqueNewReviews] as Review[];
+        });
       }
-
-      setHasMore(newReviews.length === 10);
     }
   }, [data, page]);
 
@@ -216,8 +226,10 @@ const ReviewList = () => {
   };
 
   return (
-    <div>
-      <List hover>
+    <>
+      <List hover style={{
+        overflow:'hidden'
+      }} >
         {reviews.map((review, index) => (
           <ReviewListItem
             key={review.id}
@@ -248,11 +260,7 @@ const ReviewList = () => {
         </div>
       )}
 
-      {!hasMore && reviews.length > 0 && (
-        <div className="review-list-end">
-          <Button endIcon={<PageEnd />} onClick={resetData}> 下一批</Button>
-        </div>
-      )}
+
 
       <ReviewModal
         passageId={selectedReviewId}
@@ -260,7 +268,7 @@ const ReviewList = () => {
         onClose={() => setOpen(false)}
         handleReview={handleReview}
       />
-    </div>
+    </>
   );
 };
 

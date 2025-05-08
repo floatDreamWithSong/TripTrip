@@ -44,7 +44,12 @@ const ReviewListItem = ({
       >
         <Panel className="review-item-panel">
           <div className="review-item-title">
-            <h4 title={review.title}>{review.title}</h4>
+          {!imageLoaded[review.id] ? (
+                <Placeholder.Paragraph rows={1} active />
+              ) : (
+                <h4 title={review.title}>{review.title}{review.id}</h4>
+              )}
+
           </div>
           <div className="review-item-content-wrapper">
             <div className="review-item-info">

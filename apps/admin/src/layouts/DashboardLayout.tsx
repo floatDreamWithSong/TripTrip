@@ -1,10 +1,11 @@
 import { Container, Header, Content, Sidebar, Dropdown, Nav, Avatar } from 'rsuite';
 import { useNavigate, Link } from 'react-router-dom';
 import { useThemeStore } from '../store/theme';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
 import { clearTokens } from '@/request';
 import { useUserStore } from '../store/user';
 import '../styles/DashboardLayout.css';
+import { useState, useEffect } from 'react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,25 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
   const userInfo = useUserStore(state => state.userInfo);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
   
   const logout = () => {
     clearTokens()
@@ -41,6 +61,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </Link>
           </div>
           <div className="header-right">
+            <div className="sidebar-toggle" onClick={toggleSidebar}>
+              {sidebarCollapsed ? <Menu size={20} /> : <X size={20} />}
+            </div>
             <div className="theme-toggle" onClick={toggleTheme}>
               {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </div>
@@ -63,7 +86,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
       </Header>
       <Container className="dashboard-body">
-        <Sidebar className="dashboard-sidebar">
+        {isMobile && !sidebarCollapsed && (
+          <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+        )}
+        <Sidebar 
+          className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${isMobile ? 'mobile' : ''}`}
+        >
           <Nav vertical appearance="subtle" activeKey={location.pathname}>
             <Nav.Item eventKey="/dashboard/statistics" onSelect={() => navigate('/dashboard/statistics')}>
               数据统计
@@ -73,7 +101,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </Nav.Item>
           </Nav>
         </Sidebar>
-        <Content className="dashboard-content">
+        <Content className={`dashboard-content ${sidebarCollapsed ? 'expanded' : ''}`}>
           {children}
         </Content>
       </Container>

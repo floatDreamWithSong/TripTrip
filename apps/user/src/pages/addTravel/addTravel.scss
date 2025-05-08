@@ -90,6 +90,54 @@
     /* 蓝色 */
 }
 
+.selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.selected-tag {
+    background-color: #f0f0f0;
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: #333;
+}
+
+.tagDisplay {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    gap: 8px;
+}
+
+.tagItem {
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff;
+    border-radius: 24px;
+    padding: 4px 20px;
+    margin: 0 10px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.tagItem:first-child {
+    margin-left: 30px;
+}
+
+.tagText {
+    margin-right: 6px;
+}
+
+.removeTag {
+    color: red;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+
 /* 内容区域 */
 .content {
     display: flex;
@@ -197,7 +245,7 @@
 //       > span {
 //         position: relative;
 //       }
-  
+
 //       &::before {
 //         content: '';
 //         background: linear-gradient(135deg, #6253e1, #04befe);
@@ -207,10 +255,9 @@
 //         transition: all 0.3s;
 //         border-radius: inherit;
 //       }
-  
+
 //       &:hover::before {
 //         opacity: 0;
 //       }
 //     }
 //   }
-  

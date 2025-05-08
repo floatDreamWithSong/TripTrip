@@ -6,6 +6,6 @@ export interface Review {
   images: string[];
   video?: string;
   content: string;
-  description: string;
+  description: string[];
   status: 'pending' | 'approved' | 'rejected';
 }

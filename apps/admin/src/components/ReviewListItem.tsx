@@ -1,5 +1,5 @@
 import { Review } from "@/types/review";
-import { List, Panel, Stack, Placeholder } from "rsuite";
+import { List, Panel, Placeholder, Tag } from "rsuite";
 import "../styles/ReviewListItem.css";
 
 export interface ReviewListItemProps {
@@ -22,6 +22,13 @@ const ReviewListItem = ({
   listItemsRef,
   onSelectReview
 }: ReviewListItemProps) => {
+  // 处理标签显示逻辑，最多显示3个，多余用...表示
+  const displayTags = review.description?.length > 0 
+    ? review.description.slice(0, 3) 
+    : [];
+  
+  const hasMoreTags = review.description?.length > 3;
+  
   return (
     <List.Item
       className="review-list-item"
@@ -36,10 +43,30 @@ const ReviewListItem = ({
         }}
       >
         <Panel className="review-item-panel">
-          <Stack spacing={20}>
+          <div className="review-item-title">
+            <h4 title={review.title}>{review.title}</h4>
+          </div>
+          <div className="review-item-content-wrapper">
+            <div className="review-item-info">
+              {!imageLoaded[review.id] ? (
+                <Placeholder.Paragraph rows={3} active />
+              ) : (
+                <>
+                  <div className="review-item-author">
+                    <p>作者：{review.author}</p>
+                  </div>
+                  <div className="review-item-tags">
+                    {displayTags.map((tag, index) => (
+                      <Tag key={index} color="blue" className="review-tag">{tag}</Tag>
+                    ))}
+                    {hasMoreTags && <Tag color="blue" className="review-tag">...</Tag>}
+                  </div>
+                </>
+              )}
+            </div>
             <div className="review-item-image-container">
               {!imageLoaded[review.id] && (
-                <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
+                <Placeholder.Graph active style={{ height: 120, width: 120, borderRadius: '8px' }} />
               )}
               <img
                 src={review.coverImage}
@@ -51,20 +78,7 @@ const ReviewListItem = ({
                 onLoad={() => setImageLoaded(prev => ({ ...prev, [review.id]: true }))}
               />
             </div>
-            <Stack direction="column" spacing={10} className="review-item-content">
-              {!imageLoaded[review.id] ? (
-                <>
-                  <Placeholder.Paragraph rows={3} active />
-                </>
-              ) : (
-                <>
-                  <h4>{review.title}</h4>
-                  <p>作者：{review.author}</p>
-                  <p>标签：{review.description}</p>
-                </>
-              )}
-            </Stack>
-          </Stack>
+          </div>
         </Panel>
       </div>
     </List.Item>

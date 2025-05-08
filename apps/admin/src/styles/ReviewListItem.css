@@ -3,26 +3,87 @@
 }
 
 .review-item-panel {
-  padding: 0;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+
+.review-item-title {
+  margin-bottom: 12px;
+}
+
+.review-item-title h4 {
+  font-size: 18px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.review-item-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.review-item-info {
+  flex: 1;
+  margin-right: 15px;
+}
+
+.review-item-author {
+  margin-bottom: 10px;
+}
+
+.review-item-author p {
+  margin: 0;
+  color: #666;
+}
+
+.review-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.review-tag {
+  margin-right: 0 !important;
 }
 
 .review-item-image-container {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
 }
 
 .review-item-image {
-  height: 200px;
-  width: 200px;
+  height: 120px;
+  width: 120px;
   border-radius: 8px;
   object-fit: cover;
 }
 
-.review-item-content {
-  flex: 1;
-} 
-.rs-stack-item h4{
-  overflow: hidden;
+/* 响应式布局 */
+@media (max-width: 576px) {
+  .review-item-content-wrapper {
+    flex-direction: column-reverse;
+  }
   
+  .review-item-image-container {
+    width: 100%;
+    height: 180px;
+    margin-bottom: 12px;
+  }
+  
+  .review-item-image {
+    width: 100%;
+    height: 180px;
+  }
+  
+  .review-item-info {
+    margin-right: 0;
+    width: 100%;
+  }
 }

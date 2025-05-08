@@ -39,9 +39,10 @@ const ReviewList = () => {
         coverImage: passage.coverImageUrl || '',
         images: [],
         content: '',
-        description: passage.PassageToTag?.map(pt => pt.tag.name).join(', ') || '',
+        description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
         status: 'pending',
       }));
+      console.log(newReviews.description,'?')
 
       if (page === 1) {
         setReviews(newReviews as Review[]);

@@ -10,7 +10,8 @@ const TravelDetail = () => {
   const [likeCount, setLikeCount] = useState(239);
   const [commentCount, setCommentCount] = useState(6);
   const [collectCount, setCollectCount] = useState(100);
-
+  //模拟tag
+  const tags = ['黄姚古镇等(6)', '松阳骑行(4)', '怒江'];
   // 模拟轮播图数据
   const swiperImages = [
     'https://picsum.photos/seed/11/430/1000',
@@ -174,7 +175,9 @@ const TravelDetail = () => {
         ))}
       </Swiper>
 {/* 标签部分 */}
-<View className='tags-container'><TravelTag></TravelTag></View>
+<View className='tags-container'>{tags.map((tag, index) => (
+    <TravelTag key={index} label={tag} />
+  ))}</View>
       {/* 内容区域 */}
       <View className="content-container">
         <Text className="content-title">{articleData.title}</Text>

@@ -1,12 +1,14 @@
 .whole-tag {
-  width: 200px;
-  height: 40px;
-  background-color: #f2f1f3;
+  height: 30px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 20rpx;
+  padding: 4px 8px;
+  margin-left: 10px;
+  background-color: #f3f4f6;
   border-radius: 20px;
-  margin-right: 30px;
-  padding: 0 10px;
+  font-size: 20px;
+  color: #333;
+  .tag-text {
+    margin: 0 10px;
+  }
 }

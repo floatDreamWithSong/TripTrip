@@ -11,7 +11,6 @@ import ReviewListItem from '@/components/ReviewListItem';
 import '../../styles/ReviewList.css';
 
 const ReviewList = () => {
-  const LIMIT_LENGTH = 20;
   const [page, setPage] = useState(1);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [hasMore, setHasMore] = useState(true);

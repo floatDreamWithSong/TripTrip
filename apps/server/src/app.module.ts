@@ -9,13 +9,9 @@ import { PrismaModule } from './common/utils/prisma/prisma.module';
 import { RedisCacheModule } from './common/utils/redis/redis.module';
 import { PassageModule } from './modules/passage/passage.module';
 import { CommentModule } from './modules/comment/comment.module';
-import { FollowModule } from './modules/follow/follow.module';
-import { LikeModule } from './modules/like/like.module';
-import { FavoriteModule } from './modules/favorite/favorite.module';
-import { LikeModule } from './modules/like/like.module';
 import { FavoriteModule } from './modules/favorite/favorite.module';
 import { FollowModule } from './modules/follow/follow.module';
-import { CommentModule } from './modules/comment/comment.module';
+import { LikeModule } from './modules/like/like.module';
 
 @Module({
   imports: [

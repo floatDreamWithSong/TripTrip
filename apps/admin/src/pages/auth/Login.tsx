@@ -53,7 +53,7 @@ const Login = () => {
     }
   }, []);
 
-  const handleSubmit =(formValue: Record<string, unknown> | null, event?: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit =(formValue: Record<string, unknown> | null) => {
     if (!formValue) return;
     
     const payload = {

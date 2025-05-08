@@ -6,7 +6,7 @@ import { deletePassage, getPendingList, putReviewStatus } from '@/request/review
 import { useQuery } from 'react-query';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
-import ReviewModal from './ReviewModal';
+import ReviewModal from '@/components/ReviewModal';
 
 interface Review {
   id: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Button, Stack, Message, useToaster, Loader, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
+import { Modal, Button, Stack, Message, useToaster, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
 import ReactPlayer from 'react-player';
 import { getPassageDetail } from '@/request/review';
 import { Image, Passage, PassageToTag } from '@/types/passage';

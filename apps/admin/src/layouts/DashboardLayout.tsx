@@ -47,7 +47,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             fontFamily:'sans-serif',
             marginLeft:'20px'
           }}>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to="/dashboard/statistics" style={{ textDecoration: 'none', color: 'inherit' }}>
               TripTrip
             </Link>
           </div>

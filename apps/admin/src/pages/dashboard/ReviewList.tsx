@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Panel, Button, Stack, Message, useToaster, Loader, Placeholder } from 'rsuite';
+import { List, Button, Message, useToaster, Loader } from 'rsuite';
 import { PageEnd } from '@rsuite/icons'
 import gsap from 'gsap';
 import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
@@ -7,18 +7,10 @@ import { useQuery } from 'react-query';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
 import ReviewModal from '@/components/ReviewModal';
+import { Review } from '@/types/review';
+import ReviewListItem from '@/components/ReviewListItem';
 
-interface Review {
-  id: number;
-  title: string;
-  author: string;
-  coverImage: string;
-  images: string[];
-  video?: string;
-  content: string;
-  description: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+
 
 const ReviewList = () => {
   const [page, setPage] = useState(1);
@@ -160,7 +152,7 @@ const ReviewList = () => {
     const marginTop = parseFloat(computedStyle.marginTop);
     const marginBottom = parseFloat(computedStyle.marginBottom);
     const totalHeight = elementHeight + marginTop + marginBottom;
-    
+
     if (isDelete) {
       await deletePassage(selectedReviewId);
     } else {
@@ -170,7 +162,7 @@ const ReviewList = () => {
         reason: isApproved ? void 0 : '审核未通过'
       });
     }
-    
+
     // 1. 首先执行消失动画
     await gsap.to(element, {
       opacity: 0,
@@ -218,62 +210,26 @@ const ReviewList = () => {
     );
   };
 
+  const handleSelectReview = (id: number) => {
+    setSelectedReviewId(id);
+    setOpen(true);
+  };
+
   return (
     <div>
       <List hover>
         {reviews.map((review, index) => (
-          <List.Item
+          <ReviewListItem
             key={review.id}
-            style={{ cursor: 'pointer' }}
-            onClick={() => {
-              setSelectedReviewId(review.id);
-              setOpen(true);
-            }}
-          >
-            <div
-              ref={(el) => {
-                if (index === reviews.length - 1) {
-                  lastElementRef.current = el;
-                }
-                listItemsRef.current[review.id] = el;
-              }}
-            >
-              <Panel style={{ padding: '0px' }} >
-                <Stack spacing={20}>
-                  <div style={{ position: 'relative', width: 200, height: 200 }}>
-                    {!imageLoaded[review.id] && (
-                      <Placeholder.Graph active style={{ height: 200, width: 200, borderRadius: '8px' }} />
-                    )}
-                    <img
-                      src={review.coverImage}
-                      alt={review.title}
-                      style={{
-                        height: 200,
-                        width: 200,
-                        borderRadius: '8px',
-                        objectFit: 'cover',
-                        display: imageLoaded[review.id] ? 'block' : 'none'
-                      }}
-                      onLoad={() => setImageLoaded(prev => ({ ...prev, [review.id]: true }))}
-                    />
-                  </div>
-                  <Stack direction="column" spacing={10} style={{ flex: 1 }}>
-                    {!imageLoaded[review.id] ? (
-                      <>
-                        <Placeholder.Paragraph rows={3} active />
-                      </>
-                    ) : (
-                      <>
-                        <h4>{review.title}</h4>
-                        <p>作者：{review.author}</p>
-                        <p>标签：{review.description}</p>
-                      </>
-                    )}
-                  </Stack>
-                </Stack>
-              </Panel>
-            </div>
-          </List.Item>
+            review={review}
+            index={index}
+            isLastItem={index === reviews.length - 1}
+            imageLoaded={imageLoaded}
+            setImageLoaded={setImageLoaded}
+            lastElementRef={lastElementRef}
+            listItemsRef={listItemsRef}
+            onSelectReview={handleSelectReview}
+          />
         ))}
       </List>
 
@@ -298,7 +254,7 @@ const ReviewList = () => {
         </div>
       )}
 
-      <ReviewModal 
+      <ReviewModal
         passageId={selectedReviewId}
         open={open}
         onClose={() => setOpen(false)}

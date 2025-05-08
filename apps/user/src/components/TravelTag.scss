@@ -1,0 +1,14 @@
+.whole-tag {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  margin-left: 10px;
+  background-color: #f3f4f6;
+  border-radius: 20px;
+  font-size: 20px;
+  color: #333;
+  .tag-text {
+    margin: 0 10px;
+  }
+}

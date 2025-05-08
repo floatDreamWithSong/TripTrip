@@ -3,7 +3,7 @@ import { View, Input } from '@tarojs/components';
 import Taro, { useReachBottom } from '@tarojs/taro';
 import { SearchOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
-import TravelCard from '../../components/TravelCard';
+import TravelCard from '@/components/TravelCard';
 import chatRobot from '@/assets/chatRobot.webp';
 import './index.scss';
 

@@ -6,12 +6,7 @@ import { Configurations } from 'src/common/config';
   imports: [
     RedisModule.forRoot({
       type: 'single',
-      options: {
-        host: Configurations.REDIS_HOST,
-        port: Configurations.REDIS_PORT,
-        password: Configurations.REDIS_PASSWORD,
-        db: Configurations.REDIS_DB,
-      },
+      url: Configurations.REDIS_URL,
     }),
   ],
 })

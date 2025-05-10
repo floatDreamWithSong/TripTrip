@@ -31,10 +31,11 @@ export class Configurations implements OnModuleInit {
   static CRYPTO_SECRET: string;
 
   // 添加 Redis 配置
-  static REDIS_HOST: string;
-  static REDIS_PORT: number;
-  static REDIS_PASSWORD: string;
-  static REDIS_DB: number;
+  // static REDIS_HOST: string;
+  // static REDIS_PORT: number;
+  // static REDIS_PASSWORD: string;
+  // static REDIS_DB: number;
+  static REDIS_URL: string;
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -54,12 +55,13 @@ export class Configurations implements OnModuleInit {
     Configurations.COS_BUCKET = this.configService.getOrThrow<string>('COS_BUCKET');
     Configurations.COS_ENDPOINT = this.configService.getOrThrow<string>('COS_ENDPOINT');
     Configurations.CRYPTO_SECRET = this.configService.getOrThrow<string>('CRYPTO_SECRET');
+    Configurations.REDIS_URL = this.configService.getOrThrow<string>('REDIS_URL');
 
     // 添加 Redis 配置的初始化
-    Configurations.REDIS_HOST = this.configService.getOrThrow<string>('REDIS_HOST');
-    Configurations.REDIS_PORT = this.configService.getOrThrow<number>('REDIS_PORT');
-    Configurations.REDIS_PASSWORD = this.configService.getOrThrow<string>('REDIS_PASSWORD');
-    Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
+    // Configurations.REDIS_HOST = this.configService.getOrThrow<string>('REDIS_HOST');
+    // Configurations.REDIS_PORT = this.configService.getOrThrow<number>('REDIS_PORT');
+    // Configurations.REDIS_PASSWORD = this.configService.getOrThrow<string>('REDIS_PASSWORD');
+    // Configurations.REDIS_DB = this.configService.getOrThrow<number>('REDIS_DB');
     console.log('Configurations.BUCKET', Configurations.COS_BUCKET);
     console.log('access token expiration time', Configurations.ACCESS_TOKEN_EXPIRATION_TIME);
     console.log('refresh token expiration time', Configurations.REFRESH_TOKEN_EXPIRATION_TIME);

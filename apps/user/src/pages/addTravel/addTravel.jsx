@@ -25,6 +25,7 @@ import {
 } from '@ant-design/icons';
 import { submitTravel } from '../../utils/travelApi';
 import { getAccessToken } from '../../utils/request';
+import { set } from 'zod';
 
 const TextArea = Input.TextArea;
 
@@ -75,13 +76,11 @@ export default function myTravels() {
     };
 
     checkLoginStatus();
-
+    Taro.removeStorageSync('travel_draft');
   }, []);
 
   useDidHide(() => {
-    const draft = Taro.getStorageSync('travel_draft');
     const nextPageUrl = Taro.getStorageSync('next_page_url') || '';
-
     const isLoginPage = nextPageUrl.includes('/pages/login/index');
 
     const hasUnsavedContent =
@@ -91,31 +90,36 @@ export default function myTravels() {
       videoFile !== null ||
       tags.length !== 0;
 
-    if (hasUnsavedContent && !draft && !isLoginPage) {
-      setTimeout(() => {
+    const draft = Taro.getStorageSync('travel_draft');
+
+    setTimeout(() => {
+      if (hasUnsavedContent && !draft && !isLoginPage) {
         Taro.showToast({
           title: '未存草稿，内容清空',
           icon: 'none',
           duration: 2000,
         });
-      });
+      }
+    })
+
+    // ✅ 清除草稿
+    if (!isLoginPage) {
+      Taro.removeStorageSync('travel_draft');
     }
 
-    if (!draft) {
-      setTitle('');
-      setValue('');
-      setImages([]);
-      setVideoFile(null);
-      setAgreement(false);
-      setFiles([]);
-      setFile(null);
-      setTags([]);
-      console.log('未存草稿，清空数据');
-    }
+    // ✅ 清空本地状态
+    setTitle('');
+    setValue('');
+    setImages([]);
+    setVideoFile(null);
+    setAgreement(false);
+    setFiles([]);
+    setFile(null);
+    setTags([]);
 
-    // 清除记录，避免影响下一次跳转
     Taro.removeStorageSync('next_page_url');
   });
+
 
   // const safeNavigate = (url) => {
   //   Taro.setStorageSync('next_page_url', url); // 记录即将跳转的页面

@@ -11,7 +11,8 @@ import {
   Button,
   ConfigProvider,
   Space,
-  Modal
+  Modal,
+  message
 } from 'antd';
 import {
   FileTextOutlined,
@@ -121,20 +122,23 @@ export default function myTravels() {
   //   Taro.navigateTo({ url });
   // };
 
-  const safeNavigate = (url) => {
-    const isLoginPage = url.includes('/pages/login/index');
-    if (isLoginPage) {
+  const safeNavigate = async (url) => {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
       Taro.showToast({
         title: '请先登录！',
         icon: 'loading',
         duration: 2000
       });
+      setTimeout(() => {
+        Taro.navigateTo({ url: '/pages/login/index' });
+      }, 2000);
+      return;
     }
-    setTimeout(() => {
-      Taro.navigateTo({ url });
-    }, 2000);
-  };
 
+    // 已登录，直接跳
+    Taro.navigateTo({ url });
+  };
 
   const [files, setFiles] = useState([])
   const [file, setFile] = useState(null)
@@ -148,6 +152,8 @@ export default function myTravels() {
   const [savedAsDraft, setSavedAsDraft] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // 控制Modal显示
   const [selectedTagOptions, setSelectedTagOptions] = useState([]); // 当前选中的标签
+  const [customTagInput, setCustomTagInput] = useState('');
+  const inputRef = useRef(null);
 
 
 
@@ -249,7 +255,7 @@ export default function myTravels() {
   };
 
   return (
-    <View>
+    <View className='addTravel-container'>
       <View className='redPackage'>
         <View className='redPackage-icon'></View>
         完成本次发布，最高可获得
@@ -319,7 +325,8 @@ export default function myTravels() {
           </View> */}
           <View className="tagButton" onClick={() => {
             setSelectedTagOptions(tags);
-            setIsModalOpen(true)}
+            setIsModalOpen(true)
+          }
           }>
             <Text className="tag"># 话题 </Text>
           </View>
@@ -369,7 +376,8 @@ export default function myTravels() {
             value,
             images,
             videoFile,
-            agreement
+            agreement,
+            tags
           };
           Taro.setStorageSync('travel_draft', draftData);
           Taro.showToast({
@@ -399,28 +407,64 @@ export default function myTravels() {
           </Button>
         </View>
       </View>
+
       <Modal
         title="选择话题标签"
         open={isModalOpen}
         onOk={() => {
-          // selectedTagOptions.forEach(tag => handleAddTag(tag));
-          handleAddTags(selectedTagOptions); // 批量添加标签
+          const trimmedInput = customTagInput.trim();
+          let newTags = [...selectedTagOptions];
+          if (trimmedInput) {
+            newTags.push(trimmedInput);
+          }
+          handleAddTags(newTags);
           setIsModalOpen(false);
+          setCustomTagInput('');
+          setSelectedTagOptions([]); // 清空选择
         }}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setCustomTagInput('');
+          setSelectedTagOptions([]); // 取消时也清空选择
+        }}
       >
-        <Checkbox.Group
-          style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
-          value={selectedTagOptions}
-          onChange={setSelectedTagOptions}
-        >
-          {allTagOptions.map(tag => (
-            <Checkbox key={tag} value={tag}>
-              #{tag}
-            </Checkbox>
-          ))}
-        </Checkbox.Group>
+        <View style={{ marginBottom: 12 }}>
+          <Text style={{ fontWeight: 'bold' }}>选择预设标签：</Text>
+          <Flex wrap="wrap" gap="small" style={{ marginTop: 8 }}>
+            {allTagOptions.map(tag => (
+              <Button
+                key={tag}
+                type={selectedTagOptions.includes(tag) ? 'primary' : 'default'}
+                onClick={() => {
+                  const alreadySelected = selectedTagOptions.includes(tag);
+                  if (alreadySelected) {
+                    setSelectedTagOptions(prev => prev.filter(t => t !== tag));
+                  } else {
+                    setSelectedTagOptions(prev => [...prev, tag]);
+                  }
+                }}
+                size="small"
+              >
+                #{tag}
+              </Button>
+            ))}
+          </Flex>
+        </View>
+
+        <View>
+          <Text style={{ fontWeight: 'bold' }}>自定义标签：</Text>
+          <Input
+            placeholder="请输入自定义标签"
+            value={customTagInput}
+            onChange={e => setCustomTagInput(e.target.value)}
+            ref={inputRef}
+            style={{ marginTop: 8 }}
+            maxLength={10}
+          />
+          <Text type="secondary" style={{ fontSize: 12 }}>（最多10个字符）</Text>
+        </View>
       </Modal>
+
 
     </View>
   )

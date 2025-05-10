@@ -11,7 +11,7 @@ import './index.scss';
 const getRandomHeight = () => 150 + Math.floor(Math.floor(Math.random() * 5) * 40);
 
 // 页数和每页数据量
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 export default function Index() {
   const [columns, setColumns] = useState([[], []]);
@@ -33,62 +33,81 @@ export default function Index() {
     return cols;
   }, []);
 
+// 加载分页数据
+const loadTravels = useCallback(async (nextPage) => {
+  if (loading) return;
+
+  setLoading(true);
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  try {
+    const response = await Taro.request({
+      url: `http://127.0.0.1:4523/m1/6328758-6024136-default/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
+      method: 'GET',
+    });
+
+    let travels = [];
+    if (response.data?.data?.list) {
+      travels = response.data.data.list;
+    } else if (Array.isArray(response.data?.data)) {
+      travels = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      travels = response.data;
+    }
+
+    if (!travels || travels.length === 0) {
+      return;
+    }
+
+    const formattedTravels = travels.map(travel => ({
+      id: travel.pid || travel.id,
+      title: travel.title || "无标题",
+      imageHeight: getRandomHeight(),
+      coverImageUrl: travel.coverImageUrl,
+      author: travel.author || { username: "未知作者" },
+      publishTime: travel.publishTime,
+      views: travel.views || 0,
+      likes: travel._count?.passageLikes || 0,
+      favorites: travel._count?.favorites || 0,
+      comments: travel._count?.comments || 0,
+      tags: travel.PassageToTag?.map(tag => tag.tag.name) || []
+    }));
+
+    // 更新数据
+    setAllTravels(prev => [...prev, ...formattedTravels]);
+    setPage(nextPage);
+
+    // 只对当前页的数据进行过滤和布局
+    const filtered = formattedTravels.filter(travel =>
+      travel.title.includes(searchText) ||
+      travel.author.username.includes(searchText)
+    );
+
+    // 更新瀑布流布局，只添加新数据
+    setColumns(prev => {
+      const newColumns = distributeItems(filtered);
+      return [
+        [...prev[0], ...newColumns[0]],
+        [...prev[1], ...newColumns[1]]
+      ];
+    });
+
+  } catch (error) {
+    console.error('Error loading travels:', error);
+    Taro.showToast({
+      title: '加载失败，请重试',
+      icon: 'none',
+      duration: 2000
+    });
+  } finally {
+    setLoading(false);
+  }
+}, [loading, searchText, distributeItems]);
+
   // 初始加载
   useEffect(() => {
     loadTravels(1);
   }, []);
-
-  // 加载分页数据
-  const loadTravels = useCallback(async (nextPage) => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // 模拟异步加载
-
-    try {
-      // 添加 page 和 limit 参数
-      const response = await Taro.request({
-        url: `http://127.0.0.1:4523/m1/6328758-6024136-default/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
-        method: 'GET',
-      });
-
-      // 打印接口返回的数据
-      console.log('Response data:', response.data);
-
-      // 确保数据存在且为有效数组
-      const mockData = response.data?.data?.list || [];
-      console.log('Mock data:', mockData);
-
-      if (mockData.length === 0) {
-        console.error('No travels data available');
-        return;
-      }
-
-      const newTravels = mockData.slice(
-        (nextPage - 1) * PAGE_SIZE,
-        nextPage * PAGE_SIZE
-      );
-
-      // 给每篇文章生成随机高度
-      const travelsWithRandomHeight = newTravels.map(travel => ({
-        ...travel,
-        imageHeight: getRandomHeight()
-      }));
-
-      const updatedTravels = [...allTravels, ...travelsWithRandomHeight];
-      setAllTravels(updatedTravels);
-
-      const filtered = updatedTravels.filter(travel =>
-        travel.title.includes(searchText) ||
-        travel.author.username.includes(searchText)
-      );
-      setColumns(distributeItems(filtered));
-
-      setPage(nextPage);
-    } catch (error) {
-      console.error('Error loading travels:', error);
-    }
-
-    setLoading(false);
-  }, [allTravels, searchText, distributeItems]);
 
   // 搜索时重新布局
   useEffect(() => {
@@ -99,23 +118,22 @@ export default function Index() {
     setColumns(distributeItems(filtered));
   }, [searchText, allTravels, distributeItems]);
 
+  // 滚动到底部加载更多
+  useReachBottom(() => {
+    if (!loading) {
+      loadTravels(page + 1);
+    }
+  });
+
   const handleSearch = (e) => {
     setSearchText(e.detail.value);
   };
 
   const handleNavigateToTravelDetail = (id) => {
-    console.log('Navigating to travel detail with id:', id);
     Taro.navigateTo({
       url: `/pages/travelDetail/travelDetail?id=${id}`
     });
   };
-
-  // 滚动到底部加载下一页
-  useReachBottom(() => {
-    if (!loading && page * PAGE_SIZE >= allTravels.length) {
-      loadTravels(page + 1);
-    }
-  });
 
   return (
     <View className="container">
@@ -126,11 +144,12 @@ export default function Index() {
           onInput={handleSearch}
           value={searchText}
         />
-        <Button type="primary" shape="default" icon={<SearchOutlined />} style={{
-          width: '50px',
-          height: '30px',
-          fontSize: '16px',
-        }} />
+        <Button
+          type="primary"
+          shape="default"
+          icon={<SearchOutlined />}
+          style={{ width: '50px', height: '30px', fontSize: '16px' }}
+        />
       </View>
 
       <View className="masonry">
@@ -146,8 +165,11 @@ export default function Index() {
           </View>
         ))}
       </View>
-      {!loading && page * PAGE_SIZE >= allTravels.length && (
-        <View className="loading-text">没有更多游记了~</View>
+
+      {loading && <View className="loading-text">加载中...</View>}
+
+      {!loading && allTravels.length === 0 && (
+        <View className="empty-text">暂无游记数据</View>
       )}
     </View>
   );

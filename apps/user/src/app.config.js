@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/myTravels/myTravels',
     'pages/login/index',
     'pages/addTravel/addTravel',
+    'pages/editTravel/editTravel',
     'pages/travelDetail/travelDetail',
   ],
   window: {

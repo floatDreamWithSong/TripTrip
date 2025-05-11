@@ -1,0 +1,55 @@
+.travel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 150px;
+  padding: 0 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .author-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-left: 15px;
+  }
+
+  .author-name {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin-left: 15px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    .follow-btn {
+      width: 100px;
+      height: 40px;
+      background-color: #fff;
+      border: 1px solid #b9b9b9;
+      border-radius: 30px;
+      padding: 8px 10px;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      margin-right: 20px;
+    }
+
+    img {
+      margin-right: 20px;
+    }
+  }
+}

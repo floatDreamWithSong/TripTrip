@@ -1,7 +1,7 @@
-// components/TravelCard.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Image, Text } from '@tarojs/components';
 import './MyCard.scss';
+import { Button } from 'antd';
 
 const stateClassMap = {
   '已通过': 'approved',
@@ -10,6 +10,8 @@ const stateClassMap = {
 };
 
 const TravelCard = ({ travel }) => {
+  const [showReason, setShowReason] = useState(false);
+
   const toDetail = (id) => {
     console.log('跳转到详情页', id);
   };
@@ -18,10 +20,10 @@ const TravelCard = ({ travel }) => {
     <View
       className="travel-card"
       style={{ height: `${travel.imageHeight}rpx` }}
-      onClick={() => toDetail(travel.id)}
+      onClick={() => toDetail(travel.pid)}
     >
       <Image
-        src={travel.images[0]}
+        src={travel.coverImageUrl}
         className="travel-image"
         mode="aspectFill"
         style={{ height: `${travel.imageHeight}px` }}
@@ -30,24 +32,43 @@ const TravelCard = ({ travel }) => {
         <Text className="travel-title">{travel.title}</Text>
         <View className="user-info">
           <Image
-            src={travel.avatar}
+            src={travel.author.avatar}
             className="avatar"
             mode="aspectFill"
           />
-          <Text className="username">{travel.username}</Text>
+          <Text className="username">{travel.author.username}</Text>
         </View>
       </View>
-      {/* <View className='travel-state {stateClassMap[travel.state]}'>{travel.state}</View> */}
+
       <View
         className={'travel-state ' + stateClassMap[travel.state]}
         onClick={(event) => {
           event.stopPropagation(); // 阻止冒泡
-          console.log(`跳转到${travel.state}页面`)
-          // 添加跳转功能，跳转到修改页面（类似于添加页面）
+          console.log(`跳转到${travel.state}页面`);
         }}
       >
         {travel.state}
       </View>
+
+      {travel.state === '未通过' && (
+        <View className="reject-section" onClick={(e) => e.stopPropagation()}>
+          <View
+            className="toggle-reason-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowReason(!showReason);
+            }}
+          >
+            {showReason ? '收起原因' : '查看原因'}
+          </View>
+
+          {showReason && (
+            <View className="reject-reason">
+              {travel.rejectReason || '未提供具体原因'}
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 };

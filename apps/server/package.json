@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "type": "commonjs",
   "scripts": {
-    "build": "nest build",
+    "build": "npx prisma generate && nest build",
     "build:swc": "nest build -b swc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" --config ../../.prettierrc",
     "dev": "cross-env NODE_ENV=development nest start -b swc -w",

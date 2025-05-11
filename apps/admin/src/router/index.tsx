@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createHashRouter, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
 import { AuthGuard } from './AuthGuard';
 
@@ -7,7 +7,7 @@ const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
 const Statistics = lazy(() => import('../pages/dashboard/Statistics'));
 const ReviewList = lazy(() => import('../pages/dashboard/ReviewList'));
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: '/',
     element: (

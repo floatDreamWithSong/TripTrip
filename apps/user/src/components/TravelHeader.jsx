@@ -36,16 +36,25 @@ const TravelHeader = ({ authorName, authorAvatar }) => {
           });
         } else if (res.tapIndex === 3) {
           Taro.setClipboardData({
-            data: window.location.href,
+            data: window.location.href || '当前页面链接',
             success: function () {
               Taro.showToast({
                 title: '链接已复制',
                 icon: 'success'
               });
+            },
+            fail: function(err) {
+              console.error('复制链接失败:', err);
+              Taro.showToast({
+                title: '复制链接失败',
+                icon: 'none'
+              });
             }
           });
         }
-      }
+      },
+    }).catch(err => {
+      console.error('ActionSheet异常:', err);
     });
   };
 

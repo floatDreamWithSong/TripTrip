@@ -1,5 +1,8 @@
 // src/api/travelApi.js
 import Taro from '@tarojs/taro';
+import { set } from 'zod';
+
+
 
 export async function submitTravel({ title, value, images, videoFile, agreement, tags }) {
   try {
@@ -11,16 +14,6 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
 
     console.log("准备提交的图片列表：", images);
 
-    // images.forEach((image, index) => {
-    //   const file = image.originFileObj;
-    //   if (file instanceof File) {
-    //     const fileToHttp = URL.createObjectURL(file)
-    //     formData.append('images', fileToHttp); // 或 file，视后端要求
-    //     console.log(`添加图片 ${index + 1}:`, file.name);
-    //   } else {
-    //     console.warn(`第 ${index + 1} 张图片没有 originFileObj`);
-    //   }
-    // });
     if (images.length > 0) {
       const coverImage = images[0];
       const coverFile = coverImage.originFileObj;
@@ -75,7 +68,6 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
       return false;
     }
 
-    // const response = await fetch('http://localhost:3000/passage/user', {
     const response = await fetch('http://daydreamer.net.cn:3000/passage/user', {
       method: 'POST',
       body: formData,
@@ -96,5 +88,41 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
     Taro.showToast({ title: '网络异常', icon: 'none', duration: 2000 });
     console.error('网络异常:', err);
     return false;
+  }
+}
+
+// 获取当前用户的游记列表
+export async function fetchMyPassages() {
+  const Authorization = await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '')
+  const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
+
+  try {
+    const res = await Taro.request({
+      url: 'http://daydreamer.net.cn:3000/passage/user',
+      method: 'GET',
+      header: {
+        // 'Authorization': Authorization,
+        // 'X_Refresh_Token': X_Refresh_Token,
+        'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
+        'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
+      }
+    })
+
+    if (res.statusCode === 200 && res.data.code === 0) {
+      return res.data.data
+    } else {
+      console.error('请求失败:', res.data.message)
+      Taro.showToast({
+        title: '登录已过期，请重新登录',
+        icon: 'none'
+      }, 2000);
+      setTimeout(() => {
+        Taro.navigateTo({ url: '/pages/login/index' });
+      }, 2000)
+      return []
+    }
+  } catch (error) {
+    console.error('请求出错:', error)
+    return []
   }
 }

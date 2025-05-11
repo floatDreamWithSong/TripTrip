@@ -3,24 +3,30 @@ import { useLoad } from '@tarojs/taro';
 import { useState, useCallback, useEffect } from 'react';
 import './myTravels.scss';
 import MyCard from '../../components/MyCard';
+import { fetchMyPassages } from '../../utils/travelApi';
 
 const travelStates = ['已通过', '未通过', '待审核'];
+const rejectReasons = ['图片不符合社区规范', '内容包含敏感信息', '内容不符合规范', '违反相关法律法规']
 
 // 添加随机高度
 const getRandomHeight = () => 150 + Math.floor(Math.random() * 200);
 
-const mockTravels = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  title: `游记标题 ${i + 1} ${'这是一个很长的标题'.repeat(Math.ceil(Math.random() * 2))}`,
-  images: [`https://picsum.photos/seed/${i}/400/300`],
-  user: {
-    nickname: `用户${i + 1}`,
-    avatar: `https://i.pravatar.cc/100?img=${i + 1}`
-  },
-  state: travelStates[Math.floor(Math.random() * 3)],
-  // 为每张图片预先分配随机高度
-  imageHeight: getRandomHeight()
-}));
+const mockTravels = Array.from({ length: 20 }, (_, i) => {
+  const state = travelStates[Math.floor(Math.random() * 3)];
+  const rejectReason = state === '未通过' ? rejectReasons[Math.floor(Math.random() * 4)] : ''
+  return {
+    pid: i,
+    title: `游记标题 ${i + 1} ${'这是一个很长的标题'.repeat(Math.ceil(Math.random() * 2))}`,
+    coverImageUrl: `https://picsum.photos/seed/${i}/400/300`,
+    author: {
+      username: `用户${i + 1}`,
+      avatar: `https://i.pravatar.cc/100?img=${i + 1}`
+    },
+    state,
+    imageHeight: getRandomHeight(),
+    rejectReason: state === '未通过' ? rejectReason : '' // 示例理由
+  };
+});
 
 export default function myTravels() {
   const [fans, setFans] = useState(0);
@@ -28,6 +34,7 @@ export default function myTravels() {
   const [loves, setLoves] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState('全部');
   const [columns, setColumns] = useState([[], []]);
+  const [passages, setPassages] = useState([])
 
   // 瀑布流分列算法（使用预分配的imageHeight）
   const distributeItems = useCallback((items) => {
@@ -48,20 +55,35 @@ export default function myTravels() {
   }, []);
 
   useEffect(() => {
-    setColumns(distributeItems(mockTravels));
-  }, [distributeItems]);
+    const loadPassages = async () => {
+      // const result = await fetchMyPassages()
+      const result = mockTravels
+      const withHeight = result.map(item => ({
+        ...item,
+        imageHeight: getRandomHeight(),
+        state: travelStates[item.state],
+        rejectReason: '',
+      }))
+      setPassages(withHeight)
 
-  const handleFilterClick = (filter) => {
+      handleFilterClick('全部', withHeight)
+    }
+
+    loadPassages()
+  }, [distributeItems])
+
+
+  const handleFilterClick = (filter, baseList = mockTravels) => {
     setSelectedFilter(filter);
-    console.log(`筛选条件已更新为: ${filter}`);
-    // 待添加逻辑：筛选后的请求
+
     if (filter === '全部') {
-      setColumns(distributeItems(mockTravels));
+      setColumns(distributeItems(baseList));
     } else {
-      const filteredItems = mockTravels.filter((item) => item.state === filter);
+      const filteredItems = baseList.filter((item) => item.state === filter);
       setColumns(distributeItems(filteredItems));
     }
   };
+
 
   useLoad(() => {
     console.log('Page - myTravels loaded.');

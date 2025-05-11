@@ -1,14 +1,12 @@
 name: Deploy to Server
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
 
 jobs:
   deploy-server:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to server
@@ -30,7 +28,6 @@ jobs:
             pm2 restart main
 
   deploy-admin:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

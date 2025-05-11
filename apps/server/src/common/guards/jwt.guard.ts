@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { Reflector } from '@nestjs/core';
 import { META_IS_PUBLIC } from '../decorators/public.decorator';
 import { JwtUtils } from '../utils/jwt/jwt.service';
+import { META_IS_FORCE_IDENTITY } from '../decorators/forceIdentity.decorator';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
@@ -22,8 +23,9 @@ export class JwtGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     // 检查是否标记为公开接口
     const isPublic = this.reflector.get<boolean>(META_IS_PUBLIC, context.getHandler());
-
-    if (isPublic) {
+    const isForceIdentity = this.reflector.get<boolean>(META_IS_FORCE_IDENTITY, context.getHandler())
+    // 如果是公开且不需要身份信息
+    if (isPublic && !isForceIdentity) {
       return true;
     }
 
@@ -32,7 +34,11 @@ export class JwtGuard implements CanActivate {
     const response = context.switchToHttp().getResponse<Response>();
     const accessToken = request.headers.authorization;
     const refreshToken = request.headers['x-refresh-token'] as string;
-
+    // 如果是公开且需要身份信息，并且没有token
+    if(isPublic && isForceIdentity && !accessToken){
+      return true
+    }
+    // 如果是公开且需要身份信息，有token，或者不可公开，进行验证
     if (!accessToken) {
       throw new UnauthorizedException('Access token is required');
     }

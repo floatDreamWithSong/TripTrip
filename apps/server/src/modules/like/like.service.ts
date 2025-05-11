@@ -9,7 +9,6 @@ export class LikeService {
   private readonly logger = new Logger(LikeService.name);
   private readonly PASSAGE_LIKE_KEY = 'passage_like:';
   private readonly COMMENT_LIKE_KEY = 'comment_like:';
-  private readonly SYNC_INTERVAL = 5 * 60 * 1000; // 5分钟同步一次
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -40,8 +39,8 @@ export class LikeService {
     return { success: true };
   }
 
-  // 每隔5分钟同步一次点赞数据
-  @Cron('0 */5 * * * *')
+  // 每隔1分钟同步一次点赞数据
+  @Cron('0 */1 * * * *')
   private async startSyncTask() {
     await this.syncLikesToDatabase();
   }
@@ -114,6 +113,7 @@ export class LikeService {
 
   async hasUserLikedPassage(userId: number, passageId: number): Promise<boolean> {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
+    console.log(key)
     return (await this.redisService.sismember(key, userId.toString())) === 1;
   }
 

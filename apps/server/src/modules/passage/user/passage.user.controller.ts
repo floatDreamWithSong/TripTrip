@@ -7,6 +7,7 @@ import { PassageText, passageTextSchema } from '@triptrip/utils';
 import { PassageService } from '../passage.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 import { UploadFilter } from 'src/common/utils/upload/upload.filter';
+import { z } from 'zod';
 
 @Controller('passage/user')
 export class PassageUserController {
@@ -68,11 +69,12 @@ export class PassageUserController {
    * @returns 
    */
   @Get()
-  list(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+  list(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('status') status?: number) {
     // 查看自己的文章
     return this.passageService.getPassages(query.page, query.limit, {
-      userId: user.uid,
-      publishTime: 'desc'
+      authorId: user.uid,
+      publishTime: 'desc',
+      status: z.coerce.number().optional().parse(status)
     });
   }
   /**

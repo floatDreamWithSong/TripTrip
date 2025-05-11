@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, ParseIntPipe, Post } from '@nestjs/common';
 import { LikeService } from './like.service';
 import { User } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from '@triptrip/utils';
@@ -8,21 +8,25 @@ import { Public } from 'src/common/decorators/public.decorator';
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
   @Post('passage')
+  @HttpCode(HttpStatus.OK)
   addPassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
     return this.likeService.addPassageLike(user.uid, passageId);
   }
 
   @Delete('passage')
+  @HttpCode(HttpStatus.OK)
   removePassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
     return this.likeService.removePassageLike(user.uid, passageId);
   }
   
   @Post('comment')
+  @HttpCode(HttpStatus.OK)
   addCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.likeService.addCommentLike(user.uid, commentId);
   }
 
   @Delete('comment')
+  @HttpCode(HttpStatus.OK)
   removeCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.likeService.removeCommentLike(user.uid, commentId);
   }

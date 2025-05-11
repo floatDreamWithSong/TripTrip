@@ -128,19 +128,20 @@
     color: #5c5c5c;
 }
 
+.travel-btn-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+}
+
 .reject-section {
-  padding: 0rpx 20rpx;
+//   width: 45%;
+margin-left: 20px;
 }
 
 .toggle-reason-btn {
   color: #007aff;
   font-size: 26rpx;
-}
-
-.reject-reason {
-  color: #ff4d4f;
-  font-size: 24rpx;
-  margin: 6rpx 0;
 }
 
 .toggle-reason-btn {
@@ -160,4 +161,33 @@
     background-color: #ec8881;
     transition: all 0.3s ease;
   }
+}
+
+.edit-btn {
+//   width: 45%;
+  font-size: 28rpx;
+  background-color: #6ec1e2;
+  margin: 20px 0;
+  padding: 8px 16px;
+  margin-left: 20px;
+  color: #333;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  text-align: center;
+  width: fit-content;
+  border: 1px solid #4abcea;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:active {
+    background-color: #12b3f3;
+    transition: all 0.3s ease;
+  }
+}
+
+.reject-reason {
+  color: #ff4d4f;
+  font-size: 24rpx;
+  margin-left: 20px;
+  margin-bottom: 20px;
 }

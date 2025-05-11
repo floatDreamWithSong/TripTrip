@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import Taro from '@tarojs/taro';
-import { View, Text, Image, Swiper, SwiperItem, Input } from '@tarojs/components';
-import { LikeOutlined,CommentOutlined, ShareAltOutlined, HeartOutlined } from '@ant-design/icons';
-import TravelTag from '@/components/TravelTag'
+import React, { useState, useEffect, useRef } from 'react';
+import Taro, { usePageScroll } from '@tarojs/taro';
+import { View, Text, Image, Swiper, SwiperItem, Video } from '@tarojs/components';
+import TravelTag from '@/components/TravelTag';
+import TravelFooter from '@/components/TravelFooter';
+import TravelHeader from '@/components/TravelHeader';
+import MiniPlayer from '@/components/MiniPlayer';
 import './travelDetail.scss';
+
 const TravelDetail = () => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isCollected, setIsCollected] = useState(false);
-  const [likeCount, setLikeCount] = useState(239);
-  const [commentCount, setCommentCount] = useState(6);
-  const [collectCount, setCollectCount] = useState(100);
+  const [videoContext, setVideoContext] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [IsWifi, setIsWifi] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [userClosedMiniPlayer, setUserClosedMiniPlayer] = useState(false);
+  const videoPosition = useRef({ top: 0, height: 0 });
+  const likeCount = 239;
+  const commentCount = 6;
+  const collectCount = 100;
   //模拟tag
   const tags = ['黄姚古镇等(6)', '松阳骑行(4)', '怒江'];
   // 模拟轮播图数据
@@ -20,6 +28,8 @@ const TravelDetail = () => {
     'https://picsum.photos/seed/41/430/1000',
     'https://picsum.photos/seed/5/430/1000',
   ];
+  const videoUrl = 'https://media.w3.org/2010/05/sintel/trailer.mp4';
+  const coverImageUrl= "https://wonderland-1328561145.cos.ap-shanghai.myqcloud.com/1746612338265-9950-man.jpg"
 
   // 模拟文章数据
   const articleData = {
@@ -41,7 +51,7 @@ const TravelDetail = () => {
 
     ## 松阳·浙江丽水
     ### **秘境体验**
-    - **云端村落**：杨家堂村被称为“江南最后的秘境”，黄昏时金色民居与炊烟构成油画般的场景。
+    - **云端村落**：杨家堂村被称为"江南最后的秘境"，黄昏时金色民居与炊烟构成油画般的场景。
     - **茶园骑行**：大木山茶园有专用骑行道，租辆自行车穿梭在茶海中。
     - **手作工坊**：体验非遗「松阳高腔」剪纸或古法红糖制作。
 
@@ -62,7 +72,7 @@ const TravelDetail = () => {
     ## 南矶山·江西南昌
     ### **自然野趣**
     - **候鸟天堂**：5月湿地可见白鹤、天鹅，摄影爱好者必去。
-    - **草海奇观**：鄱阳湖枯水期形成的“草原”，适合露营看星空。
+    - **草海奇观**：鄱阳湖枯水期形成的"草原"，适合露营看星空。
     - **渔家乐**：现捞现做的银鱼蒸蛋鲜美无比。
 
     **最佳时间**：清晨或傍晚游览，避开正午暴晒。
@@ -74,20 +84,52 @@ const TravelDetail = () => {
     `,
   };
 
-  // 返回首页
-  const handleBackToHome = () => {
-    Taro.navigateBack({
-      delta: 1,
-    });
-  };
+  // 监听页面滚动，但不在这里处理小窗口逻辑
+  usePageScroll(() => {
+    // 保留此钩子以便将来可能需要响应滚动事件
+  });
 
-  // 点击关注
-  const handleFollow = () => {
-    Taro.showToast({
-      title: '关注成功',
-      icon: 'success',
+  // 判断网络情况
+  useEffect(() => {
+    const checkNetworkStatus = async () => {
+      try {
+        const res = await Taro.getNetworkType();
+        const isAllowedNetwork = (
+          res.networkType === 'wifi'
+        );
+        setIsWifi(isAllowedNetwork);
+        console.log('网络状态', res.networkType);
+      } catch (error) {
+        console.error('获取网络状态失败:', error);
+      }
+    };
+
+    checkNetworkStatus();
+
+    // 监听网络状态变化
+    Taro.onNetworkStatusChange(res => {
+      const isAllowedNetwork = (
+        res.networkType === 'wifi'
+      );
+      setIsWifi(isAllowedNetwork);
+      console.log('网络状态变化', res.networkType, isAllowedNetwork);
     });
-  };
+
+    // 创建视频上下文
+    if (videoUrl) {
+      try {
+        const context = Taro.createVideoContext('travel-video');
+        setVideoContext(context);
+      } catch (error) {
+        console.error('视频上下文创建失败:', error);
+      }
+    }
+
+    return () => {
+      // 页面卸载时移除网络状态监听
+      Taro.offNetworkStatusChange();
+    };
+  }, []);
 
   // 点击图片全屏查看
   const handleImagePreview = (current) => {
@@ -97,67 +139,143 @@ const TravelDetail = () => {
     });
   };
 
-  // 点赞功能
-  const handleLike = () => {
-    if (isLiked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
-    }
-    setIsLiked(!isLiked);
-  };
-
-  // 评论功能
-  const handleComment = () => {
-    Taro.showToast({
-      title: '评论功能开发中',
-      icon: 'none',
-    });
-  };
-
-  // 分享功能
+  // 处理分享功能
   const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  // 关闭分享模态框
+  const handleCloseShareModal = () => {
+    setShowShareModal(false);
+  };
+
+  // 分享到微信
+  const handleShareToWechat = () => {
+    // 使用小程序原生分享
     Taro.showShareMenu({
       withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
+    });
+
+    // 关闭分享模态框
+    handleCloseShareModal();
+  };
+
+  // 分享到朋友圈
+  const handleShareToMoments = () => {
+    // 使用小程序原生分享到朋友圈
+    Taro.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareTimeline']
+    });
+
+    // 设置分享参数
+    Taro.onShareTimeline(() => {
+      return {
+        title: articleData.title,
+        query: `id=${articleData.id}`,
+        imageUrl: swiperImages[0]
+      };
+    });
+
+    // 关闭分享模态框
+    handleCloseShareModal();
+  };
+
+  // 视频播放错误处理
+  const handleVideoError = (e) => {
+    console.error('视频播放错误:', e);
+    Taro.showToast({
+      title: '视频加载失败',
+      icon: 'none'
     });
   };
 
-  // 收藏功能
-  const handleCollect = () => {
-    if (isCollected) {
-      setCollectCount(collectCount - 1);
-    } else {
-      setCollectCount(collectCount + 1);
+  // 视频点击事件处理
+  const handleVideoClick = () => {
+    // 如果视频还未加载完成，不执行全屏操作
+    if (!isVideoLoaded) return;
+
+    if (videoContext) {
+      try {
+        videoContext.requestFullScreen({ direction: 0 });
+      } catch (error) {
+        // 如果全屏请求失败，使用原生方法
+        Taro.showToast({
+          title: '全屏播放失败，请直接点击视频控制栏的全屏按钮',
+          icon: 'none',
+          duration: 2000
+        });
+      }
     }
-    setIsCollected(!isCollected);
+  };
+
+  // 视频加载完成
+  const handleVideoLoaded = () => {
+    setIsVideoLoaded(true);
+  };
+
+  // 视频控制事件处理
+  const handleVideoControl = (e) => {
+    // 停止冒泡但不阻止默认行为，这样可以保证视频控制功能正常工作
+    e.stopPropagation();
+  };
+
+  // 视频播放事件
+  const handleVideoPlay = (e) => {
+    // 只停止冒泡，不阻止默认播放行为
+    e.stopPropagation();
+    setIsPlaying(true);
+
+    // 重置用户手动关闭标志，允许小窗口重新显示
+    setUserClosedMiniPlayer(false);
+
+    // 获取视频位置信息
+    if (videoPosition.current.top === 0) {
+      const query = Taro.createSelectorQuery();
+      query.select('#travel-video')
+        .boundingClientRect(rect => {
+          if (rect) {
+            videoPosition.current = {
+              top: rect.top,
+              height: rect.height,
+              id: 'travel-video'
+            };
+          }
+        })
+        .exec();
+    }
+  };
+
+  // 视频暂停事件
+  const handleVideoPause = (e) => {
+    // 只停止冒泡，不阻止默认暂停行为
+    e.stopPropagation();
+    setIsPlaying(false);
+  };
+
+  // 关闭小窗口并滚动回视频位置
+  const handleCloseMiniPlayer = () => {
+    if (videoContext) {
+      videoContext.pause();
+    }
+
+    // 滚动回视频位置
+    Taro.pageScrollTo({
+      scrollTop: videoPosition.current.top > 0 ? videoPosition.current.top - 100 : 0,
+      duration: 300
+    });
+  };
+
+  // 用户手动关闭小窗口
+  const handleManualCloseMiniPlayer = () => {
+    setUserClosedMiniPlayer(true);
   };
 
   return (
     <View className="travel-detail-container">
       {/* 顶部导航栏 */}
-      <View className="header">
-        <View className="header-left" onClick={handleBackToHome}>
-          <img
-            width="25"
-            height="25"
-            src="https://img.icons8.com/ios-glyphs/30/back.png"
-            alt="back"
-          />
-          <Image className="author-avatar" src={articleData.avatar} />
-          <Text className="author-name">{articleData.username}</Text>
-        </View>
-        <View className="header-right">
-          <View className="follow-btn" onClick={handleFollow}>
-            <Text>+ 关注</Text>
-          </View>
-          <img
-            width="30"
-            height="30"
-            src="https://img.icons8.com/external-royyan-wijaya-detailed-outline-royyan-wijaya/24/external-ellipsis-interface-royyan-wijaya-detailed-outline-royyan-wijaya.png"
-            alt="external-ellipsis-interface-royyan-wijaya-detailed-outline-royyan-wijaya"
-          />
-        </View>
-      </View>
+      <TravelHeader authorName={articleData.username} authorAvatar={articleData.avatar} />
 
       {/* 轮播图部分 */}
       <Swiper
@@ -166,8 +284,37 @@ const TravelDetail = () => {
         indicatorActiveColor="#1890ff"
         circular
         indicatorDots
-        autoplay
+        autoplay={!videoUrl}
       >
+        {videoUrl && (
+          <SwiperItem>
+            <View className="video-wrapper" onClick={handleVideoClick}>
+              <Video
+                id="travel-video"
+                className="swiper-video"
+                src={videoUrl}
+                controls={true}
+                autoplay={IsWifi}
+                loop={true}
+                muted={false}
+                showFullscreenBtn={true}
+                showPlayBtn={true}
+                objectFit="cover"
+                style={{ width: '100%', height: '100%' }}
+                poster={coverImageUrl}
+                onError={handleVideoError}
+                onClick={handleVideoControl}
+                onPlay={handleVideoPlay}
+                onPause={handleVideoPause}
+                showBottomProgress={true}
+                showProgress={true}
+                playBtnPosition="bottom"
+                enableProgressGesture={false}
+                onLoadedMetaData={handleVideoLoaded}
+              />
+            </View>
+          </SwiperItem>
+        )}
         {swiperImages.map((image, index) => (
           <SwiperItem key={index} onClick={() => handleImagePreview(image)}>
             <Image className="swiper-image" src={image} mode="aspectFill" />
@@ -185,32 +332,45 @@ const TravelDetail = () => {
       </View>
 
       {/* 底部操作栏 */}
+      <TravelFooter
+        onShare={handleShare}
+        initialLikeCount={likeCount}
+        initialCollectCount={collectCount}
+        initialCommentCount={commentCount}
+      />
 
-      <View className="footer">
-        <View className="comment-input">
-          <Input
-            className="input"
-            placeholder="来条神评"
-            placeholderStyle="color:rgba(244, 248, 251,0.85);"
-          />
+      {/* 分享模态框 */}
+      {showShareModal && (
+        <View className="share-modal-overlay" onClick={handleCloseShareModal}>
+          <View className="share-modal-content" onClick={(e) => e.stopPropagation()}>
+            <View className="share-modal-header">
+              <Text>分享到</Text>
+              <View className="close-btn" onClick={handleCloseShareModal}>×</View>
+            </View>
+            <View className="share-options">
+              <View className="share-option" onClick={handleShareToWechat}>
+                <Image className="option-icon" src={require('@/assets/wx.webp')} />
+                <Text>微信</Text>
+              </View>
+              <View className="share-option" onClick={handleShareToMoments}>
+                <Image className="option-icon" src={require('@/assets/pyq.webp')} />
+                <Text>朋友圈</Text>
+              </View>
+            </View>
+          </View>
         </View>
-        <View className={`action-btn ${isLiked ? 'active' : ''}`} onClick={handleLike}>
-        <LikeOutlined />
-          <Text className="count">{likeCount}</Text>
-        </View>
-        <View className="action-btn" onClick={handleComment}>
-          <CommentOutlined />
-          <Text className="count">{commentCount}</Text>
-        </View>
-        <View className="action-btn" onClick={handleShare}>
-          <ShareAltOutlined />
-          <Text className="count">分享</Text>
-        </View>
-        <View className={`action-btn ${isCollected ? 'active' : ''}`} onClick={handleCollect}>
-          <HeartOutlined />
-          <Text className="count">{collectCount}</Text>
-        </View>
-      </View>
+      )}
+
+      {/* 小窗口播放器 - 现在由组件内部决定是否显示 */}
+      <MiniPlayer
+        videoUrl={videoUrl}
+        isPlaying={isPlaying}
+        videoContext={videoContext}
+        onClose={handleCloseMiniPlayer}
+        videoElementInfo={videoPosition.current}
+        manualClosed={userClosedMiniPlayer}
+        onManualClose={handleManualCloseMiniPlayer}
+      />
     </View>
   );
 };

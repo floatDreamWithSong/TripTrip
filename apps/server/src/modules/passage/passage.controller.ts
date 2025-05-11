@@ -4,6 +4,7 @@ import { Public } from "src/common/decorators/public.decorator";
 import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS } from "@triptrip/utils";
 import { User } from "src/common/decorators/user.decorator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validate.pipe";
+import { ForceIdentity } from "src/common/decorators/forceIdentity.decorator";
 
 @Controller('passage')
 export class PassageController {
@@ -16,27 +17,30 @@ export class PassageController {
    */
   @Get()
   @Public()
-  getOne(@Query('id', ParseIntPipe) id: number) {
-    return this.passageService.getOne(id);
+  @ForceIdentity()
+  getOne(@Query('id', ParseIntPipe) id: number, @User() user?: JwtPayload) {
+    return this.passageService.getOne(id, user?.uid);
   }
   /**
    *  获取文章列表
    * @param query 
-   * @param userId 
+   * @param authorId 
    * @returns 
    */
   @Get('list')
   @Public()
-  list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('userId') userId?: number) {
+  @ForceIdentity()
+  list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('authorId') authorId?: number, @User() user?: JwtPayload) {
     this.logger.debug(`query: ${JSON.stringify(query)}`);
-    this.logger.debug(`userId: ${userId}`);
-    if(userId){
-      userId = parseInt(userId.toString());
+    this.logger.debug(`userId: ${authorId}`);
+    if(authorId){
+      authorId = parseInt(authorId.toString());
     }
     return this.passageService.getPassages(query.page, query.limit, {
-      userId: userId,
+      authorId,
       status: PASSAGE_STATUS.APPROVED,
-      publishTime: "desc"
+      publishTime: "desc",
+      userId: user?.uid
     });
   }
 

@@ -6,10 +6,11 @@ import { PassageUserController } from './user/passage.user.controller';
 import { PassageAdminController } from './admin/passage.admin.controller';
 import { PassageUserService } from './user/passage.user.service';
 import { PassageAdminService } from './admin/passage.admin.service';
+import { LikeModule } from '../like/like.module';
 
 
 @Module({
-  imports: [CosModule],
+  imports: [CosModule, LikeModule],
   controllers: [PassageController, PassageUserController, PassageAdminController],
   providers: [PassageService, PassageUserService, PassageAdminService]
 })

@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { Configurations } from 'src/common/config';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    RedisModule.forRoot({
-      type: 'single',
-      url: Configurations.REDIS_URL,
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'single',
+        options: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+          password: configService.get('REDIS_PASSWORD'),
+          db: configService.get('REDIS_DB'),
+        },
+      }),
     }),
   ],
 })

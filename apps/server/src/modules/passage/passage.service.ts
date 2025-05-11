@@ -3,12 +3,14 @@ import { JwtPayload, PASSAGE_STATUS, USER_TYPE } from "@triptrip/utils";
 import { EXCEPTIONS } from "src/common/exceptions";
 import { CosService } from "src/common/utils/cos/cos.service";
 import { PrismaService } from "src/common/utils/prisma/prisma.service";
+import { LikeService } from "../like/like.service";
 
 @Injectable()
 export class PassageService {
     private readonly logger = new Logger(PassageService.name);
     constructor(private readonly cosService: CosService,
-        private readonly prismaService: PrismaService) { }
+        private readonly prismaService: PrismaService,
+    private readonly likeService: LikeService) { }
     /**
      * 请求文章列表，只包括简略信息，包括请求者相对其的信息
      * @param page 
@@ -16,11 +18,11 @@ export class PassageService {
      * @param options 
      * @returns 
      */
-    getPassages(page: number, limit: number, options: {
-        userId?: number, status?: number, publishTime?: 'asc' | 'desc'
+    async getPassages(page: number, limit: number, options: {
+        authorId?: number, status?: number, publishTime?: 'asc' | 'desc',userId?: number
     }) {
-        const { userId, status, publishTime } = options;
-        return this.prismaService.passage.findMany({
+        const { authorId, userId, status, publishTime } = options;
+        const passages = await this.prismaService.passage.findMany({
             skip: (page - 1) * limit,
             take: limit,
             include: {
@@ -68,7 +70,7 @@ export class PassageService {
                 publishTime: publishTime || 'desc' // 按照发布时间排序，默认为降序排序
             },
             where: {
-                authorId: userId, // 如果有 userId 则只返回该用户的文章
+                authorId,// 如果有 authorId 则只返回该用户的文章
                 status // 如果有 status 则只返回该状态的文章
             },
             omit: {
@@ -78,14 +80,30 @@ export class PassageService {
                 videoUrl: true,
             }
         });
+
+        // 获取实时点赞数据并覆盖
+        const passagesWithRealTimeLikes = await Promise.all(passages.map(async (passage) => {
+            const realTimeLikeCount = await this.likeService.getPassageLikeCount(passage.pid);
+            const isLiked = userId ? await this.likeService.hasUserLikedPassage(userId, passage.pid) : false;
+            return {
+                ...passage,
+                _count: {
+                    ...passage._count,
+                    passageLikes: realTimeLikeCount
+                },
+                passageLikes: isLiked ? [{ userId }] : []
+            };
+        }));
+
+        return passagesWithRealTimeLikes;
     }
     /**
      * 获取一篇文章的详细信息，包括请求者自身相对其的情况，但是不包括审核情况
      * @param pid 
      * @returns 
      */
-    getOne(pid: number, userId?: number) {
-        return this.prismaService.passage.findUnique({
+    async getOne(pid: number, userId?: number) {
+        const passage = await this.prismaService.passage.findUnique({
             where: { pid },
             include: {
                 author: {
@@ -137,7 +155,21 @@ export class PassageService {
                 reason: true,
                 status: true
             }
-        })
+        });
+
+        if (!passage) return null;
+
+        // 获取实时点赞数据并覆盖
+        const realTimeLikeCount = await this.likeService.getPassageLikeCount(pid);
+        const isLiked = userId ? await this.likeService.hasUserLikedPassage(userId, pid) : false;
+        return {
+            ...passage,
+            _count: {
+                ...passage._count,
+                passageLikes: realTimeLikeCount
+            },
+            passageLikes: isLiked ? [{ userId }] : []
+        };
     }
     /**
      * 删除文章，仅用户自身，管理员可操作

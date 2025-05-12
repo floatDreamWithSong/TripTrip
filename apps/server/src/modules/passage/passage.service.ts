@@ -71,13 +71,15 @@ export class PassageService {
             },
             where: {
                 authorId,// 如果有 authorId 则只返回该用户的文章
-                status // 如果有 status 则只返回该状态的文章
+                status, // 如果有 status 则只返回该状态的文章
+                isDeleted: false
             },
             omit: {
                 reason: true,
                 content: true,
                 status: true,
                 videoUrl: true,
+                isDeleted: true
             }
         });
 
@@ -104,7 +106,7 @@ export class PassageService {
      */
     async getOne(pid: number, userId?: number) {
         const passage = await this.prismaService.passage.findUnique({
-            where: { pid },
+            where: { pid, isDeleted: false },
             include: {
                 author: {
                     select: {
@@ -153,7 +155,8 @@ export class PassageService {
             },
             omit: {
                 reason: true,
-                status: true
+                status: true,
+                isDeleted: true
             }
         });
 
@@ -188,6 +191,13 @@ export class PassageService {
         // 检查用户是否有权限删除文章
         if (user.userType !== USER_TYPE.ADMIN && passage.authorId !== user.uid) {
             throw EXCEPTIONS.PASSAGE_DELETE_FAILED
+        }
+        if (user.userType === USER_TYPE.ADMIN) {
+            await this.prismaService.passage.update({
+                where: { pid: passageId },
+                data: { isDeleted: true }
+            })
+            return true;
         }
         return this.prismaService.$transaction(async (tx) => {
             // 删除文章关联的图片

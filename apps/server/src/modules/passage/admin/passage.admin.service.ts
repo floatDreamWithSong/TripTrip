@@ -102,6 +102,7 @@ export class PassageAdminService {
       where: {
         pid: pid,
         status: PASSAGE_STATUS.PENDING,
+        isDeleted: false
       },
       data: {
         status: status,

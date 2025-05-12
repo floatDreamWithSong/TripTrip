@@ -19,6 +19,7 @@ export class PassageUserService {
       where: {
         pid: passageId,
         authorId: uid,
+        isDeleted: false
       },
       select: {
         pid: true,

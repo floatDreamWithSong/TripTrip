@@ -55,4 +55,48 @@ export class PassageController {
   delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
     return this.passageService.deletePassage(user, passageId);
   }
+
+  /**
+   * 搜索文章
+   * @param query 分页参数
+   * @param keyword 搜索关键词
+   * @param tagId 标签ID
+   * @param sortType 排序类型：hot(热点)、latest(最新)、comprehensive(综合)
+   * @param user 当前用户信息
+   * @returns 
+   */
+  @Get('search')
+  @Public()
+  @ForceIdentity()
+  search(
+    @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery,
+    @Query('keyword') keyword?: string,
+    @Query('tagId') tagId?: number,
+    @Query('sortType') sortType?: 'hot' | 'latest' | 'comprehensive',
+    @User() user?: JwtPayload
+  ) {
+    this.logger.debug(`Search query: ${JSON.stringify({
+      page: query.page,
+      limit: query.limit,
+      keyword,
+      tagId,
+      sortType,
+      userId: user?.uid
+    })}`);
+    
+    if (tagId) {
+      tagId = parseInt(tagId.toString());
+    }
+    
+    return this.passageService.searchPassages(
+      query.page,
+      query.limit,
+      {
+        keyword,
+        tagId,
+        sortType,
+        userId: user?.uid
+      }
+    );
+  }
 }

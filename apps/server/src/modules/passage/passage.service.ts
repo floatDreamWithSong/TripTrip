@@ -4,6 +4,7 @@ import { EXCEPTIONS } from "src/common/exceptions";
 import { CosService } from "src/common/utils/cos/cos.service";
 import { PrismaService } from "src/common/utils/prisma/prisma.service";
 import { LikeService } from "../like/like.service";
+import { Prisma } from "prisma-generated";
 
 @Injectable()
 export class PassageService {
@@ -112,6 +113,12 @@ export class PassageService {
                 views: { increment: 1 }
             }
         });
+        
+        // 更新文章评分
+        this.updatePassageRating(pid).catch(err => {
+            this.logger.error(`更新文章评分失败，ID: ${pid}`, err);
+        });
+        
         const passage = await this.prismaService.passage.findUnique({
             where: { pid, isDeleted: false },
             include: {
@@ -256,5 +263,280 @@ export class PassageService {
 
             return true;
         })
+    }
+    /**
+     * 搜索文章，支持按关键词搜索标题和内容，支持分类查询
+     * @param page 页码
+     * @param limit 每页数量
+     * @param options 搜索选项
+     * @returns 
+     */
+    async searchPassages(page: number, limit: number, options: {
+        keyword?: string,
+        tagId?: number,
+        sortType?: 'hot' | 'latest' | 'comprehensive',
+        userId?: number
+    }) {
+        const { keyword, tagId, sortType, userId } = options;
+        
+        // 构建基本查询条件
+        const where: Prisma.PassageWhereInput = {
+            status: PASSAGE_STATUS.APPROVED, // 只查询已审核通过的文章
+            isDeleted: false,
+        };
+
+        // 如果有关键词，则搜索标题和内容
+        if (keyword) {
+            where.OR = [
+                { title: { contains: keyword } },
+                { content: { contains: keyword } }
+            ];
+        }
+
+        // 如果有标签ID，则只查询包含该标签的文章
+        if (tagId) {
+            where.PassageToTag = {
+                some: {
+                    tagId
+                }
+            };
+        }
+
+        // 构建排序条件
+        let orderBy: Prisma.PassageOrderByWithRelationInput | Prisma.PassageOrderByWithRelationInput[] = {};
+
+        switch (sortType) {
+            case 'hot':
+                // 热点：按最近一段时间（7天内）新增点赞数量排序
+                // 由于需要复杂计算，我们先获取所有符合条件的文章ID
+                const hotPassageIds = await this.getHotPassageIds();
+                if (hotPassageIds.length > 0) {
+                    where.pid = { in: hotPassageIds };
+                }
+                // 默认按发布时间降序排序
+                orderBy = { publishTime: 'desc' };
+                break;
+            case 'latest':
+                // 最新：按发布时间排序
+                orderBy = { publishTime: 'desc' };
+                break;
+            case 'comprehensive':
+                // 综合：使用数据库中预先计算的rating字段排序
+                orderBy = { rating: 'desc' };
+                break;
+            default:
+                // 默认按发布时间降序排序
+                orderBy = { publishTime: 'desc' };
+                break;
+        }
+
+        // 查询文章列表
+        const passages = await this.prismaService.passage.findMany({
+            skip: (page - 1) * limit,
+            take: limit,
+            where,
+            orderBy,
+            include: {
+                author: {
+                    select: {
+                        uid: true,
+                        username: true,
+                        avatar: true,
+                        followers: {
+                            where: {
+                                followerId: userId // 检查当前用户是否关注了该作者
+                            }
+                        }
+                    }
+                },
+                PassageToTag: {
+                    select: {
+                        tag: {
+                            select: {
+                                tid: true,
+                                name: true
+                            }
+                        }
+                    }
+                },
+                passageLikes: {
+                    where: {
+                        userId // 检查当前用户是否点赞了该文章
+                    }
+                },
+                favorites: {
+                    where: {
+                        userId // 检查当前用户是否收藏了该文章
+                    }
+                },
+                _count: { // 统计文章的评论数、点赞数、收藏数
+                    select: {
+                        comments: true,
+                        favorites: true,
+                        passageLikes: true
+                    }
+                }
+            },
+            omit: {
+                reason: true,
+                content: true,
+                status: true,
+                videoUrl: true,
+                isDeleted: true
+            }
+        });
+
+        // 获取实时点赞数据并覆盖
+        let passagesWithRealTimeLikes = await Promise.all(passages.map(async (passage) => {
+            const [realTimeLikeCount, isLiked] = await Promise.all([
+                this.likeService.getPassageLikeCount(passage.pid),
+                userId ? this.likeService.hasUserLikedPassage(userId, passage.pid) : false
+            ])
+            return {
+                ...passage,
+                _count: {
+                    ...passage._count,
+                    passageLikes: realTimeLikeCount
+                },
+                passageLikes: isLiked ? [{ userId }] : []
+            };
+        }));
+
+        // 计算总数
+        const total = await this.prismaService.passage.count({ where });
+
+        return {
+            data: passagesWithRealTimeLikes,
+            meta: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
+
+    /**
+     * 获取热门文章ID列表（最近7天内点赞数最多的文章）
+     * @returns 
+     */
+    private async getHotPassageIds(): Promise<number[]> {
+        // 计算7天前的日期
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // 查询最近7天内点赞数最多的文章
+        const hotPassages = await this.prismaService.passageLike.groupBy({
+            by: ['passageId'],
+            where: {
+                createdAt: {
+                    gte: sevenDaysAgo
+                }
+            },
+            _count: {
+                passageId: true
+            },
+            orderBy: {
+                _count: {
+                    passageId: 'desc'
+                }
+            },
+            take: 50 // 限制返回数量
+        });
+
+        return hotPassages.map(p => p.passageId);
+    }
+
+    /**
+     * 更新所有文章的评分
+     * 评分计算公式：点赞数*2 + 收藏数*5 + 阅读次数
+     * 此方法应该由定时任务调用，例如每小时执行一次
+     */
+    async updateAllPassagesRating() {
+        this.logger.log('开始更新所有文章评分...');
+        
+        try {
+            // 获取所有未删除的文章
+            const passages = await this.prismaService.passage.findMany({
+                where: {
+                    isDeleted: false,
+                    status: PASSAGE_STATUS.APPROVED
+                },
+                select: {
+                    pid: true,
+                    views: true,
+                    _count: {
+                        select: {
+                            passageLikes: true,
+                            favorites: true
+                        }
+                    }
+                }
+            });
+
+            // 批量更新文章评分
+            const updatePromises = passages.map(async (passage) => {
+                // 获取实时点赞数
+                const realTimeLikeCount = await this.likeService.getPassageLikeCount(passage.pid);
+                
+                // 计算评分
+                const rating = realTimeLikeCount * 2 + passage._count.favorites * 5 + passage.views;
+                
+                // 更新文章评分
+                return this.prismaService.passage.update({
+                    where: { pid: passage.pid },
+                    data: { rating }
+                });
+            });
+
+            await Promise.all(updatePromises);
+            this.logger.log(`成功更新 ${passages.length} 篇文章的评分`);
+        } catch (error) {
+            this.logger.error('更新文章评分失败', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 更新单篇文章的评分
+     * 当文章被点赞、收藏或阅读时调用
+     * @param passageId 文章ID
+     */
+    async updatePassageRating(passageId: number) {
+        try {
+            // 获取文章信息
+            const passage = await this.prismaService.passage.findUnique({
+                where: { pid: passageId },
+                select: {
+                    views: true,
+                    _count: {
+                        select: {
+                            favorites: true
+                        }
+                    }
+                }
+            });
+
+            if (!passage) {
+                this.logger.warn(`文章不存在，ID: ${passageId}`);
+                return;
+            }
+
+            // 获取实时点赞数
+            const realTimeLikeCount = await this.likeService.getPassageLikeCount(passageId);
+            
+            // 计算评分
+            const rating = realTimeLikeCount * 2 + passage._count.favorites * 5 + passage.views;
+            
+            // 更新文章评分
+            await this.prismaService.passage.update({
+                where: { pid: passageId },
+                data: { rating }
+            });
+
+            this.logger.debug(`已更新文章评分，ID: ${passageId}, 评分: ${rating}`);
+        } catch (error) {
+            this.logger.error(`更新文章评分失败，ID: ${passageId}`, error);
+        }
     }
 }

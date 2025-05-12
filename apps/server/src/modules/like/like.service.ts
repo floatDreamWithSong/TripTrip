@@ -1,8 +1,9 @@
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, forwardRef, Inject } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
+import { PassageService } from '../passage/passage.service';
 
 @Injectable()
 export class LikeService {
@@ -12,18 +13,35 @@ export class LikeService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    @InjectRedis() private readonly redisService: Redis
+    @InjectRedis() private readonly redisService: Redis,
+    @Inject(forwardRef(() => PassageService)) private readonly passageService?: PassageService
   ) {}
 
   async addPassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.setbit(key, userId - 1, 1);
+    
+    // 更新文章评分
+    if (this.passageService) {
+      this.passageService.updatePassageRating(passageId).catch(err => {
+        this.logger.error(`更新文章评分失败，ID: ${passageId}`, err);
+      });
+    }
+    
     return { success: true };
   }
 
   async removePassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.setbit(key, userId - 1, 0);
+    
+    // 更新文章评分
+    if (this.passageService) {
+      this.passageService.updatePassageRating(passageId).catch(err => {
+        this.logger.error(`更新文章评分失败，ID: ${passageId}`, err);
+      });
+    }
+    
     return { success: true };
   }
 

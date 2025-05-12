@@ -189,6 +189,13 @@ export class PassageService {
         if (user.userType !== USER_TYPE.ADMIN && passage.authorId !== user.uid) {
             throw EXCEPTIONS.PASSAGE_DELETE_FAILED
         }
+        if (user.userType === USER_TYPE.ADMIN) {
+            await this.prismaService.passage.update({
+                where: { pid: passageId },
+                data: { isDeleted: true }
+            })
+            return true;
+        }
         return this.prismaService.$transaction(async (tx) => {
             // 删除文章关联的图片
             await tx.passageImage.deleteMany({

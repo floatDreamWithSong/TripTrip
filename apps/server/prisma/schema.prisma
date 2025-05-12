@@ -44,6 +44,7 @@ model Passage {
   reason        String?
   views         Int          @default(0)
   coverImageUrl String
+  isDeleted     Boolean      @default(false) @map("is_deleted")
   // 优化：移除冗余的likes字段，通过PassageLike关系统计
   author        User         @relation(fields: [authorId], references: [uid])
   images        PassageImage[]

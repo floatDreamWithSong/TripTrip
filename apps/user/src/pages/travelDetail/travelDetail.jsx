@@ -5,6 +5,7 @@ import TravelTag from '@/components/TravelTag';
 import TravelFooter from '@/components/TravelFooter';
 import TravelHeader from '@/components/TravelHeader';
 import MiniPlayer from '@/components/MiniPlayer';
+import { shareToMoments,shareToFriends } from '@/utils/share'
 import './travelDetail.scss';
 
 const TravelDetail = () => {
@@ -124,36 +125,32 @@ const TravelDetail = () => {
   };
 
   // 分享到微信
-  const handleShareToWechat = () => {
-    Taro.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
-    });
+  const handleShareToFriends = async () => {
+    const result = await shareToFriends({
+      title: travelDetail?.title || '精彩游记',
+      imageUrl: travelDetail?.coverImageUrl,
+      path: `/pages/detail/index?id=${travelDetail?.id}`
+    })
 
-    // 关闭分享模态框
-    handleCloseShareModal();
-  };
+    console.log('分享到微信好友结果:', result)
+
+    handleCloseShareModal()
+  }
+
 
   // 分享到朋友圈
-  const handleShareToMoments = () => {
-    // 使用小程序原生分享到朋友圈
-    Taro.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareTimeline']
-    });
+  const handleShareToMoments = async () => {
+    const result = await shareToMoments({
+      title: travelDetail?.title || '精彩游记',
+      imageUrl: travelDetail?.coverImageUrl,
+      path: `/pages/detail/index?id=${travelDetail?.id}`
+    })
 
-    // 设置分享参数
-    Taro.onShareTimeline(() => {
-      return {
-        title: travelDetail?.title || '',
-        query: `id=${travelDetail?.pid || ''}`,
-        imageUrl: travelDetail?.coverImageUrl || ''
-      };
-    });
+    console.log('分享结果:', result)
 
-    // 关闭分享模态框
-    handleCloseShareModal();
-  };
+    handleCloseShareModal()
+  }
+
 
   // 视频播放错误处理
   const handleVideoError = (e) => {
@@ -331,11 +328,11 @@ const TravelDetail = () => {
               <View className="close-btn" onClick={handleCloseShareModal}>×</View>
             </View>
             <View className="share-options">
-              <View className="share-option" onClick={handleShareToWechat}>
+              <View className="share-option" onClick={handleShareToFriends}>
                 <Image className="option-icon" src={require('@/assets/wx.webp')} />
                 <Text>微信</Text>
               </View>
-              <View className="share-option" onClick={handleShareToMoments}>
+              <View className="share-option" onClick={handleShareToMoments} >
                 <Image className="option-icon" src={require('@/assets/pyq.webp')} />
                 <Text>朋友圈</Text>
               </View>

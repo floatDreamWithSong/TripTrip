@@ -105,6 +105,13 @@ export class PassageService {
      * @returns 
      */
     async getOne(pid: number, userId?: number) {
+        // 增加阅读量
+        await this.prismaService.passage.update({
+            where: { pid },
+            data: {
+                views: { increment: 1 }
+            }
+        });
         const passage = await this.prismaService.passage.findUnique({
             where: { pid, isDeleted: false },
             include: {
@@ -163,8 +170,10 @@ export class PassageService {
         if (!passage) return null;
 
         // 获取实时点赞数据并覆盖
-        const realTimeLikeCount = await this.likeService.getPassageLikeCount(pid);
-        const isLiked = userId ? await this.likeService.hasUserLikedPassage(userId, pid) : false;
+        const [realTimeLikeCount, isLiked] = await Promise.all([
+            this.likeService.getPassageLikeCount(pid),
+            userId ? this.likeService.hasUserLikedPassage(userId, pid) : false
+        ]);
         return {
             ...passage,
             _count: {
@@ -201,25 +210,28 @@ export class PassageService {
         }
         return this.prismaService.$transaction(async (tx) => {
             // 删除文章关联的图片
-            await tx.passageImage.deleteMany({
-                where: { pid: passageId }
-            });
             // 删除和文章关联的tag关联
-            await tx.passageToTag.deleteMany({
-                where: { passageId: passageId }
-            });
             // 删除相关的评论
-            await tx.comment.deleteMany({
-                where: { passageId: passageId }
-            })
             // 删除相关的点赞
-            await tx.passageLike.deleteMany({
-                where: { passageId: passageId }
-            })
             // 删除相关的收藏
-            await tx.favorite.deleteMany({
-                where: { passageId: passageId }
-            })
+
+            await Promise.all([
+                tx.passageImage.deleteMany({
+                    where: { pid: passageId }
+                }),
+                tx.passageToTag.deleteMany({
+                    where: { passageId: passageId }
+                }),
+                tx.comment.deleteMany({
+                    where: { passageId: passageId }
+                }),
+                tx.passageLike.deleteMany({
+                    where: { passageId: passageId }
+                }),
+                tx.favorite.deleteMany({
+                    where: { passageId: passageId }
+                })
+            ])
 
             // 删除文章
             await tx.passage.delete({
@@ -231,17 +243,16 @@ export class PassageService {
             const images = await tx.passageImage.findMany({
                 where: { pid: passageId }
             });
-            for (const image of images) {
-                await this.cosService.deleteFileByUrl(image.url);
-            }
+            const promiseList: Promise<void>[] = images.map(image => this.cosService.deleteFileByUrl(image.url))
             // 删除COS上的视频
             if (passage.videoUrl) {
-                await this.cosService.deleteFileByUrl(passage.videoUrl);
+                promiseList.push(this.cosService.deleteFileByUrl(passage.videoUrl))
             }
             // 删除封面图
             if (passage.coverImageUrl) {
-                await this.cosService.deleteFileByUrl(passage.coverImageUrl);
+                promiseList.push(this.cosService.deleteFileByUrl(passage.coverImageUrl))
             }
+            await Promise.all(promiseList)
 
             return true;
         })

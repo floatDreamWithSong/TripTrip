@@ -1,6 +1,6 @@
 import { View, Text, Image } from '@tarojs/components';
 import { useState, useEffect, useRef } from 'react';
-import { useDidHide } from '@tarojs/taro';
+import { getStorageSync, useDidHide, useDidShow } from '@tarojs/taro';
 import './addTravel.scss';
 import AddPicture from '../../components/addPicture';
 import Taro, { Component } from '@tarojs/taro'
@@ -79,6 +79,17 @@ export default function myTravels() {
     Taro.removeStorageSync('travel_draft');
   }, []);
 
+  useDidShow(() => {
+    const draft = Taro.getStorageSync('travel_draft');
+    console.log('draft:', draft);
+    setTitle(draft.title || '');
+    setValue(draft.value || '');
+    setImages(draft.images || []);
+    setVideoFile(draft.videoFile || null);
+    setAgreement(draft.agreement || false);
+    setTags(draft.tags || []);
+  });
+
   useDidHide(() => {
     const nextPageUrl = Taro.getStorageSync('next_page_url') || '';
     const isLoginPage = nextPageUrl.includes('/pages/login/index');
@@ -103,9 +114,9 @@ export default function myTravels() {
     })
 
     // ✅ 清除草稿
-    if (!isLoginPage) {
-      Taro.removeStorageSync('travel_draft');
-    }
+    // if (!isLoginPage) {
+    //   Taro.removeStorageSync('travel_draft');
+    // }
 
     // ✅ 清空本地状态
     setTitle('');
@@ -384,6 +395,7 @@ export default function myTravels() {
             tags
           };
           Taro.setStorageSync('travel_draft', draftData);
+          console.log("travel_draft: ", getStorageSync('travel_draft'))
           Taro.showToast({
             title: '已存为草稿',
             icon: 'success',

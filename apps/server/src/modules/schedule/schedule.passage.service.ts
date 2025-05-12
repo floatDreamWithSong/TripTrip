@@ -24,7 +24,7 @@ export class SchedulePassageService {
         await this.redisService.sadd(this.PASSAGE_UPDATE_KEY, passageId.toString());
     }
     
-    @Cron(CronExpression.EVERY_5_SECONDS)
+    @Cron(process.env.NODE_ENV === 'production' ? CronExpression.EVERY_5_MINUTES : CronExpression.EVERY_10_SECONDS)
     async updateAllPassagesRating() {
         this.logger.log('开始更新文章评分...');
 

@@ -1,6 +1,6 @@
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
 import { SchedulePassageService } from '../schedule/schedule.passage.service';
@@ -54,7 +54,7 @@ export class LikeService {
   }
 
   // 每到1分钟整数倍同步一次点赞数据
-  @Cron('0 */1 * * * *')
+  @Cron(CronExpression.EVERY_MINUTE)
   private async startSyncTask() {
     await this.syncLikesToDatabase();
   }

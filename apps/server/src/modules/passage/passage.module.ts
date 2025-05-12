@@ -7,18 +7,18 @@ import { PassageAdminController } from './admin/passage.admin.controller';
 import { PassageUserService } from './user/passage.user.service';
 import { PassageAdminService } from './admin/passage.admin.service';
 import { LikeModule } from '../like/like.module';
-import { PassageTasksService } from './tasks/passage-tasks.service';
 import { FavoriteModule } from '../favorite/favorite.module';
-
+import { ScheduleModule } from '../schedule/schedule.module';
 
 @Module({
   imports: [
     CosModule, 
     forwardRef(() => LikeModule),
-    forwardRef(() => FavoriteModule)
+    forwardRef(() => FavoriteModule),
+    forwardRef(() => ScheduleModule)
   ],
   controllers: [PassageController, PassageUserController, PassageAdminController],
-  providers: [PassageService, PassageUserService, PassageAdminService, PassageTasksService],
+  providers: [PassageService, PassageUserService, PassageAdminService],
   exports: [PassageService]
 })
 export class PassageModule {}

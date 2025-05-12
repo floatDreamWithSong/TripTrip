@@ -9,25 +9,25 @@ export class LikeController {
   constructor(private readonly likeService: LikeService) {}
   @Post('passage')
   @HttpCode(HttpStatus.OK)
-  addPassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
+  async addPassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
     return this.likeService.addPassageLike(user.uid, passageId);
   }
 
   @Delete('passage')
   @HttpCode(HttpStatus.OK)
-  removePassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
+  async removePassageLike(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number) {
     return this.likeService.removePassageLike(user.uid, passageId);
   }
   
   @Post('comment')
   @HttpCode(HttpStatus.OK)
-  addCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
+  async addCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.likeService.addCommentLike(user.uid, commentId);
   }
 
   @Delete('comment')
   @HttpCode(HttpStatus.OK)
-  removeCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
+  async removeCommentLike(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.likeService.removeCommentLike(user.uid, commentId);
   }
 

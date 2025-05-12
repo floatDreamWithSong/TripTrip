@@ -22,9 +22,9 @@ export class CommentService {
             avatar: true
           }
         },
-        replies: {
-          include: {
-            _count: true,
+        _count: {
+          select: {
+            replies: true
           }
         }
       }
@@ -81,11 +81,23 @@ export class CommentService {
     if (user.type !== USER_TYPE.ADMIN && comment.userId !== user.uid) {
       throw EXCEPTIONS.COMMENT_DELETE_FAILED
     }
-    await this.prismaService.comment.delete({
-      where: {
-        cid
-      }
+    // 删除评论及其回复，通过事务删除
+    await this.prismaService.$transaction(async (tx) => {
+      await Promise.all([
+        tx.comment.deleteMany({
+          where: {
+            parentId: cid
+          }
+        }),
+        tx.comment.delete({
+          where: {
+            cid
+          }
+        })
+      ])
+
     })
+    
   }
 
 }

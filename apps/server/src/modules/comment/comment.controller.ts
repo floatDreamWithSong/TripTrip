@@ -1,7 +1,8 @@
-import { Controller,  Post, Body, Delete, ParseIntPipe, Get } from '@nestjs/common';
+import { Controller,  Post, Body, Delete, ParseIntPipe, Get, Query } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { User } from 'src/common/decorators/user.decorator';
-import { JwtPayload } from '@triptrip/utils';
+import { JwtPayload, PageQuery } from '@triptrip/utils';
+import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 
 @Controller('comment')
 export class CommentController {
@@ -26,15 +27,13 @@ export class CommentController {
     return this.commentService.removeComment(user, commentId);
   }
   @Get('passage')
-  getPassageCommentList(@Body('passageId', ParseIntPipe) passageId: number,
-    @Body('page', ParseIntPipe) page: number,
-    @Body('limit', ParseIntPipe) limit: number) {
-    return this.commentService.getPassageCommentList(passageId, page, limit);
+  getPassageCommentList(@Query('passageId', ParseIntPipe) passageId: number,
+    @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+    return this.commentService.getPassageCommentList(passageId, query.page, query.limit);
   }
   @Get('reply')
-  getReplyCommentList(@Body('parentId', ParseIntPipe) parentId: number,
-    @Body('page', ParseIntPipe) page: number,
-    @Body('limit', ParseIntPipe) limit: number) {
-    return this.commentService.getReplyCommentList(parentId, page, limit);
+  getReplyCommentList(@Query('parentId', ParseIntPipe) parentId: number,
+    @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+    return this.commentService.getReplyCommentList(parentId, query.page, query.limit);
   }
 }

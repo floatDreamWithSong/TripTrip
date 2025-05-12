@@ -5,13 +5,15 @@ import { CosService } from "src/common/utils/cos/cos.service";
 import { PrismaService } from "src/common/utils/prisma/prisma.service";
 import { LikeService } from "../like/like.service";
 import { Prisma } from "prisma-generated";
+import { SchedulePassageService } from "../schedule/schedule.passage.service";
 
 @Injectable()
 export class PassageService {
     private readonly logger = new Logger(PassageService.name);
     constructor(private readonly cosService: CosService,
         private readonly prismaService: PrismaService,
-    private readonly likeService: LikeService) { }
+        private readonly likeService: LikeService,
+        private readonly schedulePassageService: SchedulePassageService) { }
     /**
      * 请求文章列表，只包括简略信息，包括请求者相对其的信息
      * @param page 
@@ -20,7 +22,7 @@ export class PassageService {
      * @returns 
      */
     async getPassages(page: number, limit: number, options: {
-        authorId?: number, status?: number, publishTime?: 'asc' | 'desc',userId?: number
+        authorId?: number, status?: number, publishTime?: 'asc' | 'desc', userId?: number
     }) {
         const { authorId, userId, status, publishTime } = options;
         const passages = await this.prismaService.passage.findMany({
@@ -113,12 +115,12 @@ export class PassageService {
                 views: { increment: 1 }
             }
         });
-        
+
         // 更新文章评分
-        this.updatePassageRating(pid).catch(err => {
+        this.schedulePassageService.updatePassageRating(pid).catch(err => {
             this.logger.error(`更新文章评分失败，ID: ${pid}`, err);
         });
-        
+
         const passage = await this.prismaService.passage.findUnique({
             where: { pid, isDeleted: false },
             include: {
@@ -278,7 +280,7 @@ export class PassageService {
         userId?: number
     }) {
         const { keyword, tagId, sortType, userId } = options;
-        
+
         // 构建基本查询条件
         const where: Prisma.PassageWhereInput = {
             status: PASSAGE_STATUS.APPROVED, // 只查询已审核通过的文章
@@ -447,96 +449,4 @@ export class PassageService {
         return hotPassages.map(p => p.passageId);
     }
 
-    /**
-     * 更新所有文章的评分
-     * 评分计算公式：点赞数*2 + 收藏数*5 + 阅读次数
-     * 此方法应该由定时任务调用，例如每小时执行一次
-     */
-    async updateAllPassagesRating() {
-        this.logger.log('开始更新所有文章评分...');
-        
-        try {
-            // 获取所有未删除的文章
-            const passages = await this.prismaService.passage.findMany({
-                where: {
-                    isDeleted: false,
-                    status: PASSAGE_STATUS.APPROVED
-                },
-                select: {
-                    pid: true,
-                    views: true,
-                    _count: {
-                        select: {
-                            passageLikes: true,
-                            favorites: true
-                        }
-                    }
-                }
-            });
-
-            // 批量更新文章评分
-            const updatePromises = passages.map(async (passage) => {
-                // 获取实时点赞数
-                const realTimeLikeCount = await this.likeService.getPassageLikeCount(passage.pid);
-                
-                // 计算评分
-                const rating = realTimeLikeCount * 2 + passage._count.favorites * 5 + passage.views;
-                
-                // 更新文章评分
-                return this.prismaService.passage.update({
-                    where: { pid: passage.pid },
-                    data: { rating }
-                });
-            });
-
-            await Promise.all(updatePromises);
-            this.logger.log(`成功更新 ${passages.length} 篇文章的评分`);
-        } catch (error) {
-            this.logger.error('更新文章评分失败', error);
-            throw error;
-        }
-    }
-
-    /**
-     * 更新单篇文章的评分
-     * 当文章被点赞、收藏或阅读时调用
-     * @param passageId 文章ID
-     */
-    async updatePassageRating(passageId: number) {
-        try {
-            // 获取文章信息
-            const passage = await this.prismaService.passage.findUnique({
-                where: { pid: passageId },
-                select: {
-                    views: true,
-                    _count: {
-                        select: {
-                            favorites: true
-                        }
-                    }
-                }
-            });
-
-            if (!passage) {
-                this.logger.warn(`文章不存在，ID: ${passageId}`);
-                return;
-            }
-
-            // 获取实时点赞数
-            const realTimeLikeCount = await this.likeService.getPassageLikeCount(passageId);
-            
-            // 计算评分
-            const rating = realTimeLikeCount * 2 + passage._count.favorites * 5 + passage.views;
-            
-            // 更新文章评分
-            await this.prismaService.passage.update({
-                where: { pid: passageId },
-                data: { rating }
-            });
-
-            this.logger.debug(`已更新文章评分，ID: ${passageId}, 评分: ${rating}`);
-        } catch (error) {
-            this.logger.error(`更新文章评分失败，ID: ${passageId}`, error);
-        }
-    }
 }

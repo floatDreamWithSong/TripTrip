@@ -1,10 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 import { FavoriteController } from './favorite.controller';
-import { PassageModule } from '../passage/passage.module';
+// import { ScheduleModule } from '../schedule/schedule.module';
 
 @Module({
-  imports: [forwardRef(() => PassageModule)],
+  // imports: [ScheduleModule],
   controllers: [FavoriteController],
   providers: [FavoriteService],
   exports: [FavoriteService]

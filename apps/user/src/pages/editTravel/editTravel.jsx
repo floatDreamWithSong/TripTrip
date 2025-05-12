@@ -369,7 +369,7 @@ export default function myTravels() {
         </View>
       </View>
       <View className='publish-container'>
-        <View className='draft' onClick={() => {
+        {/* <View className='draft' onClick={() => {
           const draftData = {
             title,
             content,
@@ -392,7 +392,7 @@ export default function myTravels() {
         }}>
           <PaperClipOutlined />
           <View className='draftText'>存草稿</View>
-        </View>
+        </View> */}
 
         <View className='publish'>
           <Button

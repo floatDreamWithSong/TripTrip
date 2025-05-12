@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, ParseIntPipe, Query } from "@nestjs/common";
 import { PassageService } from "./passage.service";
 import { Public } from "src/common/decorators/public.decorator";
-import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS } from "@triptrip/utils";
+import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS, PassageSearchMeta } from "@triptrip/utils";
 import { User } from "src/common/decorators/user.decorator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validate.pipe";
 import { ForceIdentity } from "src/common/decorators/forceIdentity.decorator";
@@ -70,31 +70,29 @@ export class PassageController {
   @ForceIdentity()
   async search(
     @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery,
-    @Query('keyword') keyword?: string,
-    @Query('tagId') tagId?: number,
-    @Query('sortType') sortType?: 'hot' | 'latest' | 'comprehensive',
+    @Query(ZodValidationPipe.passageSearchMetaSchema) meta: PassageSearchMeta,
     @User() user?: JwtPayload
   ) {
     this.logger.debug(`Search query: ${JSON.stringify({
       page: query.page,
       limit: query.limit,
-      keyword,
-      tagId,
-      sortType,
+      keyword: meta.keyword,
+      tagId: meta.tagId,
+      sortType: meta.sortType,
       userId: user?.uid
     })}`);
     
-    if (tagId) {
-      tagId = parseInt(tagId.toString());
+    if (meta.tagId) {
+      meta.tagId = parseInt(meta.tagId.toString());
     }
     
     return this.passageService.searchPassages(
       query.page,
       query.limit,
       {
-        keyword,
-        tagId,
-        sortType,
+        keyword: meta.keyword,
+        tagId: meta.tagId,
+        sortType: meta.sortType,
         userId: user?.uid
       }
     );

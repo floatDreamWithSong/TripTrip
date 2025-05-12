@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Logger, ParseIntPipe, Query } from "@nestjs/common";
 import { PassageService } from "./passage.service";
 import { Public } from "src/common/decorators/public.decorator";
-import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS } from "@triptrip/utils";
+import { JwtPayload, PageQuery, pageQuerySchema, PASSAGE_STATUS, PassageSearchMeta } from "@triptrip/utils";
 import { User } from "src/common/decorators/user.decorator";
 import { ZodValidationPipe } from "src/common/pipes/zod-validate.pipe";
 import { ForceIdentity } from "src/common/decorators/forceIdentity.decorator";
@@ -18,7 +18,7 @@ export class PassageController {
   @Get()
   @Public()
   @ForceIdentity()
-  getOne(@Query('id', ParseIntPipe) id: number, @User() user?: JwtPayload) {
+  async getOne(@Query('id', ParseIntPipe) id: number, @User() user?: JwtPayload) {
     return this.passageService.getOne(id, user?.uid);
   }
   /**
@@ -30,7 +30,7 @@ export class PassageController {
   @Get('list')
   @Public()
   @ForceIdentity()
-  list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('authorId') authorId?: number, @User() user?: JwtPayload) {
+  async list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('authorId') authorId?: number, @User() user?: JwtPayload) {
     this.logger.debug(`query: ${JSON.stringify(query)}`);
     this.logger.debug(`userId: ${authorId}`);
     if(authorId){
@@ -52,7 +52,49 @@ export class PassageController {
    */
   @Delete()
   @HttpCode(HttpStatus.OK)
-  delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
+  async delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
     return this.passageService.deletePassage(user, passageId);
+  }
+
+  /**
+   * 搜索文章
+   * @param query 分页参数
+   * @param keyword 搜索关键词
+   * @param tagId 标签ID
+   * @param sortType 排序类型：hot(热点)、latest(最新)、comprehensive(综合)
+   * @param user 当前用户信息
+   * @returns 
+   */
+  @Get('search')
+  @Public()
+  @ForceIdentity()
+  async search(
+    @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery,
+    @Query(ZodValidationPipe.passageSearchMetaSchema) meta: PassageSearchMeta,
+    @User() user?: JwtPayload
+  ) {
+    this.logger.debug(`Search query: ${JSON.stringify({
+      page: query.page,
+      limit: query.limit,
+      keyword: meta.keyword,
+      tagId: meta.tagId,
+      sortType: meta.sortType,
+      userId: user?.uid
+    })}`);
+    
+    if (meta.tagId) {
+      meta.tagId = parseInt(meta.tagId.toString());
+    }
+    
+    return this.passageService.searchPassages(
+      query.page,
+      query.limit,
+      {
+        keyword: meta.keyword,
+        tagId: meta.tagId,
+        sortType: meta.sortType,
+        userId: user?.uid
+      }
+    );
   }
 }

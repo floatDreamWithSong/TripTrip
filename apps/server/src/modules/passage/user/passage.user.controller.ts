@@ -30,7 +30,7 @@ export class PassageUserController {
   ], {
     fileFilter: (req, file, callback) => UploadFilter.fileFilter(file.fieldname, file, callback)
   }))
-  create(
+  async create(
     @Body(ZodValidationPipe.passageTextSchema) body: PassageText,
     @UploadedFiles() files: {
       images?: Express.Multer.File[],
@@ -69,7 +69,7 @@ export class PassageUserController {
    * @returns 
    */
   @Get()
-  list(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('status') status?: number) {
+  async list(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('status') status?: number) {
     // 查看自己的文章
     return this.passageService.getPassages(query.page, query.limit, {
       authorId: user.uid,
@@ -84,7 +84,7 @@ export class PassageUserController {
    * @returns 
    */
   @Get('review')
-  review(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
+  async review(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
     // 查看自己的文章审核情况
     return this.passageUserService.getPassageReview(passageId, user.uid);
   }

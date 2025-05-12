@@ -16,7 +16,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
     UserModule,
     JwtUtilsModule,
     Configurations,
@@ -27,6 +26,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     LikeModule,
     FavoriteModule,
     FollowModule,
+    ScheduleModule.forRoot(),
   ],
   providers: [
     {

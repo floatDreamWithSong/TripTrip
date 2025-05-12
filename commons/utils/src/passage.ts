@@ -28,3 +28,9 @@ export const pageQuerySchema = z.object({
     limit: z.coerce.number().min(1).default(10),
 })
 export type PageQuery = z.infer<typeof pageQuerySchema>;
+export const passageSearchMetaSchema = z.object({
+    keyword: z.string().optional(),
+    tagId: z.coerce.number().optional(),
+    sortType: z.enum(['hot', 'latest', 'comprehensive']).optional(),
+})
+export type PassageSearchMeta = z.infer<typeof passageSearchMetaSchema>;

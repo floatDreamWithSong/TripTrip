@@ -1,5 +1,5 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
-import { emailSchema, pageQuerySchema, passageReviewSchema, passageTagsSchema, passageTextSchema, userLoginSchema, userRegisterSchema } from '@triptrip/utils';
+import { emailSchema, pageQuerySchema, passageReviewSchema, passageSearchMetaSchema, passageTagsSchema, passageTextSchema, userLoginSchema, userRegisterSchema } from '@triptrip/utils';
 import { ZodSchema } from 'zod';
 
 @Injectable()
@@ -22,5 +22,6 @@ export class ZodValidationPipe<T> implements PipeTransform {
   static passageTextSchema = new ZodValidationPipe(passageTextSchema);
   static userRegisterSchema = new ZodValidationPipe(userRegisterSchema);
   static userLoginSchema = new ZodValidationPipe(userLoginSchema)
+  static passageSearchMetaSchema = new ZodValidationPipe(passageSearchMetaSchema);
 
 }

@@ -15,7 +15,7 @@ import { ScheduleModule } from '../schedule/schedule.module';
     CosModule, 
     forwardRef(() => LikeModule),
     forwardRef(() => FavoriteModule),
-    forwardRef(() => ScheduleModule)
+    ScheduleModule
   ],
   controllers: [PassageController, PassageUserController, PassageAdminController],
   providers: [PassageService, PassageUserService, PassageAdminService],

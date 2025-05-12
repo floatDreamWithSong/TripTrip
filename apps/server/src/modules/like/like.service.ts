@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
+import { SchedulePassageService } from '../schedule/schedule.passage.service';
 
 @Injectable()
 export class LikeService {
@@ -12,18 +13,31 @@ export class LikeService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    @InjectRedis() private readonly redisService: Redis
+    @InjectRedis() private readonly redisService: Redis,
+    private readonly schedulePassageService: SchedulePassageService
   ) {}
 
   async addPassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.sadd(key, userId.toString());
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
     return { success: true };
   }
 
   async removePassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.srem(key, userId.toString());
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
     return { success: true };
   }
 

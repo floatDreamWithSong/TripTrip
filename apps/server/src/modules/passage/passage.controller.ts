@@ -18,7 +18,7 @@ export class PassageController {
   @Get()
   @Public()
   @ForceIdentity()
-  getOne(@Query('id', ParseIntPipe) id: number, @User() user?: JwtPayload) {
+  async getOne(@Query('id', ParseIntPipe) id: number, @User() user?: JwtPayload) {
     return this.passageService.getOne(id, user?.uid);
   }
   /**
@@ -30,7 +30,7 @@ export class PassageController {
   @Get('list')
   @Public()
   @ForceIdentity()
-  list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('authorId') authorId?: number, @User() user?: JwtPayload) {
+  async list(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, @Query('authorId') authorId?: number, @User() user?: JwtPayload) {
     this.logger.debug(`query: ${JSON.stringify(query)}`);
     this.logger.debug(`userId: ${authorId}`);
     if(authorId){
@@ -52,7 +52,7 @@ export class PassageController {
    */
   @Delete()
   @HttpCode(HttpStatus.OK)
-  delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
+  async delete(@User() user: JwtPayload, @Query('passageId', ParseIntPipe) passageId: number) {
     return this.passageService.deletePassage(user, passageId);
   }
 
@@ -68,7 +68,7 @@ export class PassageController {
   @Get('search')
   @Public()
   @ForceIdentity()
-  search(
+  async search(
     @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery,
     @Query('keyword') keyword?: string,
     @Query('tagId') tagId?: number,

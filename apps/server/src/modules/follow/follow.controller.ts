@@ -9,16 +9,16 @@ export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
   @Post()
-  addFollow(@User() user: JwtPayload, @Body('followerId', ParseIntPipe) followingId: number) {
-    this.followService.addFollow(user.uid, followingId);
+  async addFollow(@User() user: JwtPayload, @Body('followerId', ParseIntPipe) followingId: number) {
+    return this.followService.addFollow(user.uid, followingId);
   }
 
   @Delete()
-  removeFollow(@User() user: JwtPayload, @Body('followerId', ParseIntPipe) followingId: number) {
-    this.followService.removeFollow(user.uid, followingId);
+  async removeFollow(@User() user: JwtPayload, @Body('followerId', ParseIntPipe) followingId: number) {
+    return this.followService.removeFollow(user.uid, followingId);
   }
   @Get()
-  getFollowList(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+  async getFollowList(@User() user: JwtPayload, @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
     return this.followService.getFollowList(user.uid, query.page, query.limit);
   }
 }

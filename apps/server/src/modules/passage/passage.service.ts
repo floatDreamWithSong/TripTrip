@@ -116,9 +116,9 @@ export class PassageService {
             }
         });
 
-        // 更新文章评分
-        this.schedulePassageService.updatePassageRating(pid).catch(err => {
-            this.logger.error(`更新文章评分失败，ID: ${pid}`, err);
+        // 标记文章需要更新评分
+        this.schedulePassageService.markPassageForRatingUpdate(pid).catch(err => {
+            this.logger.error(`标记文章评分更新失败，ID: ${pid}`, err);
         });
 
         const passage = await this.prismaService.passage.findUnique({

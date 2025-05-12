@@ -1,7 +1,7 @@
 import { Injectable, forwardRef, Inject, Logger } from '@nestjs/common';
 import { JwtPayload } from '@triptrip/utils';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
-// import { SchedulePassageService } from '../schedule/schedule.passage.service';
+import { SchedulePassageService } from '../schedule/schedule.passage.service';
 
 @Injectable()
 export class FavoriteService {
@@ -9,7 +9,7 @@ export class FavoriteService {
   
   constructor(
     private readonly prismaService: PrismaService,
-    // private readonly schedulePassageService: SchedulePassageService
+    private readonly schedulePassageService: SchedulePassageService
   ) {}
   
   getFavoriteList(uid: number, page: number, limit: number) {
@@ -48,10 +48,10 @@ export class FavoriteService {
       },
     });
     
-    // 更新文章评分
-    // this.schedulePassageService.updatePassageRating(passageId).catch(err => {
-    //   this.logger.error(`更新文章评分失败，ID: ${passageId}`, err);
-    // });
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
 
     return 'success';
   }
@@ -66,11 +66,10 @@ export class FavoriteService {
       }
     });
     
-    // 更新文章评分
-    // this.schedulePassageService.updatePassageRating(passageId).catch(err => {
-    //   this.logger.error(`更新文章评分失败，ID: ${passageId}`, err);
-    // });
-    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
     
     return 'success';
   }

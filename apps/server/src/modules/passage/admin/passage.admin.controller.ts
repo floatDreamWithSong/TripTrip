@@ -18,7 +18,7 @@ export class PassageAdminController {
   @Put()
   @HttpCode(HttpStatus.OK)
   @UserType('beyondUser')
-  updateByAdmin(@Body(ZodValidationPipe.passageReviewSchema) body: PassageReview) {
+  async updateByAdmin(@Body(ZodValidationPipe.passageReviewSchema) body: PassageReview) {
     return this.passageAdminService.updateByAdmin(body.pid, body.status, body.reason);
   }
   /**
@@ -28,7 +28,7 @@ export class PassageAdminController {
    */
   @Get()
   @UserType('beyondUser')
-  listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+  async listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
     return this.passageService.getPassages(query.page, query.limit, {
       status: PASSAGE_STATUS.PENDING,
       publishTime: 'asc'
@@ -40,7 +40,7 @@ export class PassageAdminController {
    */
   @Get('statistics')
   @UserType('beyondUser')
-  getReviewStatistics() {
+  async getReviewStatistics() {
     return this.passageAdminService.getGlobalReviewStatistics();
   }
 }

@@ -8,11 +8,11 @@ import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 export class CommentController {
   constructor(private readonly commentService: CommentService) { }
   @Post('passage')
-  createPassageComment(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number, @Body('content') content: string) {
+  async createPassageComment(@User() user: JwtPayload, @Body('passageId', ParseIntPipe) passageId: number, @Body('content') content: string) {
     return this.commentService.createPassageComment(user.uid, passageId, content);
   }
   @Post('reply')
-  createReplyComment(@User() user: JwtPayload,
+  async createReplyComment(@User() user: JwtPayload,
     @Body('passageId', ParseIntPipe) passageId: number,
     @Body('parentId', ParseIntPipe) parentId: number,
     @Body('content') content: string) {
@@ -23,16 +23,16 @@ export class CommentController {
       content);
   }
   @Delete()
-  removeComment(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
+  async removeComment(@User() user: JwtPayload, @Body('commentId', ParseIntPipe) commentId: number) {
     return this.commentService.removeComment(user, commentId);
   }
   @Get('passage')
-  getPassageCommentList(@Query('passageId', ParseIntPipe) passageId: number,
+  async getPassageCommentList(@Query('passageId', ParseIntPipe) passageId: number,
     @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
     return this.commentService.getPassageCommentList(passageId, query.page, query.limit);
   }
   @Get('reply')
-  getReplyCommentList(@Query('parentId', ParseIntPipe) parentId: number,
+  async getReplyCommentList(@Query('parentId', ParseIntPipe) parentId: number,
     @Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
     return this.commentService.getReplyCommentList(parentId, query.page, query.limit);
   }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Input } from '@tarojs/components';
 import Taro, { useReachBottom } from '@tarojs/taro';
-import { SearchOutlined, MenuOutlined, RightOutlined } from '@ant-design/icons';
+import { SearchOutlined, MenuOutlined, RightOutlined, LeftOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 import TravelCard from '@/components/TravelCard';
 import chatRobot from '@/assets/chatRobot.webp';
@@ -30,7 +30,7 @@ export default function Index() {
   const [showRightScroll, setShowRightScroll] = useState(true);
 
   // 定义标签列表
-  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州'];
+  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州','测试','food'];
 
   // 瀑布流算法
   const distributeItems = useCallback((items) => {

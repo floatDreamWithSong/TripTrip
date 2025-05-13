@@ -5,11 +5,104 @@ import { EmailService } from 'src/common/utils/email/email.service';
 import { VerificationCodeService } from 'src/modules/user/verification-code.service';
 import { EXCEPTIONS } from 'src/common/exceptions';
 import { JwtUtils } from 'src/common/utils/jwt/jwt.service';
-import { emailSchema, PASSAGE_STATUS, UserLogin, UserRegister } from '@triptrip/utils';
+import { emailSchema, PASSAGE_STATUS, UserLogin, UserRegister, UserUpdateEmail, UserUpdateInfo, UserUpdatePassword, UserForgetPassword } from '@triptrip/utils';
 import { USER_TYPE } from '@triptrip/utils';
-
+import { VERIFICATION_CODE_POSTFIX } from 'src/common/constants';
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+  constructor(
+    private readonly cosService: CosService,
+    private readonly prismaService: PrismaService,
+    private readonly emailService: EmailService,
+    private readonly jwtUtils: JwtUtils,
+    private readonly verificationCodeService: VerificationCodeService,
+  ) {}
+  async updateAvatar(file: Express.Multer.File, uid: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        uid: uid,
+      },
+    });
+    if (!user) {
+      throw EXCEPTIONS.USER_NOT_FOUND;
+    }
+    const avatarUrl = `https://${await this.cosService.uploadFile(file)}`;
+    const oldAvatarUrl = user.avatar;
+    await this.prismaService.user.update({
+      where: {
+        uid: uid,
+      },
+      data: {
+        avatar: avatarUrl,
+      },
+    });
+    if (oldAvatarUrl) {
+      await this.cosService.deleteFileByUrl(oldAvatarUrl);
+    }
+    return {
+      avatar: avatarUrl,
+    }
+  }
+  async updateInfo(body: UserUpdateInfo & {uid: number}) {
+    await this.prismaService.user.update({
+      where: {
+        uid: body.uid,
+      },
+      data: body,
+    });
+  }
+  async updatePassword(body: UserUpdatePassword & {uid: number}) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        uid: body.uid,
+      },
+    });
+    if (!user) {
+      throw EXCEPTIONS.USER_NOT_FOUND;
+    }
+    if (user.password !== body.oldPassword) {
+      throw EXCEPTIONS.PASSWORD_ERROR;
+    }
+    await this.prismaService.user.update({
+      where: {
+        uid: body.uid,
+      },
+      data: {
+        password: body.newPassword,
+      },
+    });
+  }
+  async updateEmail(body: UserUpdateEmail & {uid: number}) {
+    const code = await this.verificationCodeService.getCode(body.email, VERIFICATION_CODE_POSTFIX.USER_UPDATE_EMAIL);
+    if (code !== body.verifyCode) {
+      throw EXCEPTIONS.VERIFY_CODE_ERROR;
+    }
+    await this.prismaService.user.update({
+      where: {
+        uid: body.uid,
+      },
+      data: {
+        email: body.email,
+      },
+    });
+    await this.verificationCodeService.deleteCode(body.email, VERIFICATION_CODE_POSTFIX.USER_UPDATE_EMAIL);
+  }
+  async forgetPassword(body: UserForgetPassword & {uid: number}) {
+    const code = await this.verificationCodeService.getCode(body.email, VERIFICATION_CODE_POSTFIX.USER_FORGET_PASSWORD);
+    if (code !== body.verifyCode) {
+      throw EXCEPTIONS.VERIFY_CODE_ERROR;
+    }
+    await this.prismaService.user.update({
+      where: {
+        uid: body.uid,
+      },
+      data: {
+        password: body.password,
+      },
+    });
+    await this.verificationCodeService.deleteCode(body.email, VERIFICATION_CODE_POSTFIX.USER_FORGET_PASSWORD);
+  }
   privateInfo(uid: number) {
     const user = this.prismaService.user.findUnique({
       where: {
@@ -34,14 +127,6 @@ export class UserService {
     })
     return user;
   }
-  private readonly logger = new Logger(UserService.name);
-  constructor(
-    private readonly cosService: CosService,
-    private readonly prismaService: PrismaService,
-    private readonly emailService: EmailService,
-    private readonly jwtUtils: JwtUtils,
-    private readonly verificationCodeService: VerificationCodeService,
-  ) {}
   /**
    *  用户公开信息
    * @param uid 
@@ -106,7 +191,7 @@ export class UserService {
    *  发送验证码
    * @param email 
    */
-  async sendVerifyCode(email: string): Promise<void> {
+  async sendVerifyCode(email: string, postfixType: string): Promise<void> {
     // 检查邮箱格式
     this.checkEmail(email)
     // 检查邮箱是否已绑定
@@ -114,7 +199,7 @@ export class UserService {
     if (user) {
       throw EXCEPTIONS.EMAIL_ALREADY_BOUND;
     }
-    let code = await this.verificationCodeService.getCode(email);
+    let code = await this.verificationCodeService.getCode(email, postfixType);
     if (code) {
       throw EXCEPTIONS.VERIFY_CODE_SEND_TOO_FREQUENTLY;
     }
@@ -124,8 +209,9 @@ export class UserService {
       .padStart(6, '0');
     await this.emailService.sendVerificationCode(email, code);
     // 缓存验证码，有效期为 5 分钟
-    await this.verificationCodeService.setCode(email, code);
+    await this.verificationCodeService.setCode(email, code, postfixType);
   }
+
   /**
    *  用户登录
    * @param body 
@@ -165,7 +251,7 @@ export class UserService {
       throw EXCEPTIONS.EMAIL_ALREADY_BOUND;
     }
     // 检查验证码
-    const code = await this.verificationCodeService.getCode(body.email);
+    const code = await this.verificationCodeService.getCode(body.email, VERIFICATION_CODE_POSTFIX.USER_REGISTER);
 
     if (code !== body.verifyCode) {
       throw EXCEPTIONS.VERIFY_CODE_ERROR;
@@ -175,7 +261,6 @@ export class UserService {
       data: {
         email: body.email,
         password: body.password,
-        avatar: 'https://wonderland-1328561145.cos.ap-shanghai.myqcloud.com/default.png',
         username: body.username
       },
     });

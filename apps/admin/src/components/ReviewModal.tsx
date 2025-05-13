@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Button, Stack, Message, useToaster, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
+import { Modal, Button, Message, useToaster, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
 import ReactPlayer from 'react-player';
 import { getPassageDetail } from '@/request/review';
 import { Image, Passage, PassageToTag } from '@/types/passage';
@@ -172,7 +172,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
               </div>
             </div>
           ) : (
-            <Stack direction="column" spacing={20}>
+            <div className='data-content-container'>
               <div className="media-container">
                 {(review?.video || (review?.images && review.images.length > 0)) ? (
                   <div className="carousel-container">
@@ -251,7 +251,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   </div>
                 )}
               </div>
-              <Stack direction="column" alignItems='flex-start' spacing={16}>
+              
                 <div>
                   <h6 className="section-header">作者</h6>
                   <div className="author-container">
@@ -282,8 +282,8 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                     dangerouslySetInnerHTML={{ __html: review?.content ? md.render(review.content) : '' }}
                   />
                 </div>
-              </Stack>
-            </Stack>
+  </div>
+
           )}
         </Modal.Body>
         <Modal.Footer>

@@ -74,7 +74,7 @@ export default function Index() {
 
     try {
       const response = await Taro.request({
-        url: `http://127.0.0.1:4523/m1/6328758-6024136-default/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
+        url: `https://daydreamer.net.cn/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
         method: 'GET',
       });
 

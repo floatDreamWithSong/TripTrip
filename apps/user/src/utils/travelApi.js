@@ -101,10 +101,10 @@ export async function fetchMyPassages() {
       url: 'http://daydreamer.net.cn:3000/passage/user',
       method: 'GET',
       header: {
-        // 'Authorization': Authorization,
-        // 'X_Refresh_Token': X_Refresh_Token,
-        'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
-        'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
+        'Authorization': Authorization,
+        'X_Refresh_Token': X_Refresh_Token,
+        // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
+        // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
       }
     })
 

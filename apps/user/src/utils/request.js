@@ -82,7 +82,7 @@ export const requestVerificationCode = async (form) => {
   if(form.password!=form.checkPassword){
     throw Error('密码不一致！')
   }
-  const { data: result } = await request('/user/code', 'POST', data)
+  const { data: result } = await request('/user/code/register', 'POST', data)
   return result;
 }
 export const register = async (args) => {

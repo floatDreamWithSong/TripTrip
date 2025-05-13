@@ -2,7 +2,7 @@ import { View, Input, Button, Text } from '@tarojs/components';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import '../index.scss';
-import {  register, requestVerificationCode } from '../../../utils/request';
+import { register, requestVerificationCode } from '../../../utils/auth';
 import { formErrorToaster } from '../../../utils/error';
 import { z } from 'zod';
 import { Spin } from 'antd';

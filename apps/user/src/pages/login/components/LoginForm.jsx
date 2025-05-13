@@ -1,6 +1,6 @@
 import { View, Input, Button, Text } from '@tarojs/components';
 import { useState } from 'react';
-import { getUserInfo, login } from '../../../utils/request';
+import { login } from '../../../utils/auth';
 import Taro from '@tarojs/taro';
 import '../index.scss';
 import { formErrorToaster } from '../../../utils/error';

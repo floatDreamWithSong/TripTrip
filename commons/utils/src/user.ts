@@ -17,6 +17,8 @@ export const verificationCodeSchema = z.string()
   .length(6, { message: '验证码必须是6位数字' })
   .regex(/^[0-9]+$/, { message: '验证码只能是数字' });
 
+export const userGenderSchema = z.union([z.literal(0), z.literal(1), z.literal(2)]);
+
 export const userRegisterSchema = z.object({
   email: emailSchema,
   username: usernameSchema,
@@ -27,8 +29,30 @@ export const userLoginSchema = z.object({
   username: usernameSchema,
   password: passwordSchema
 });
+export const userUpdateInfoSchema = z.object({
+  username: usernameSchema.optional(),
+  gender: userGenderSchema.optional(),
+});
+export const userUpdatePasswordSchema = z.object({
+  newPassword: passwordSchema,
+  oldPassword: passwordSchema
+});
+export const userUpdateEmailSchema = z.object({
+  email: emailSchema,
+  verifyCode: verificationCodeSchema
+});
+export const userForgetPasswordSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  verifyCode: verificationCodeSchema
+});
+
 export type UserRegister = z.infer<typeof userRegisterSchema>;
 export type UserLogin = z.infer<typeof userLoginSchema>;
+export type UserUpdateInfo = z.infer<typeof userUpdateInfoSchema>;
+export type UserUpdatePassword = z.infer<typeof userUpdatePasswordSchema>;
+export type UserUpdateEmail = z.infer<typeof userUpdateEmailSchema>;
+export type UserForgetPassword = z.infer<typeof userForgetPasswordSchema>;
 export const USER_TYPE = {
   USER: 0,
   REVIEWER: 1,

@@ -7,14 +7,16 @@ import {
   Logger,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 
 import { Public } from 'src/common/decorators/public.decorator';
-import { JwtPayload, UserLogin, userLoginSchema, UserRegister, userRegisterSchema } from '@triptrip/utils';
+import { JwtPayload, UserForgetPassword, UserLogin, UserRegister, UserUpdateEmail, UserUpdateInfo, UserUpdatePassword } from '@triptrip/utils';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 import { User } from 'src/common/decorators/user.decorator';
+import { VERIFICATION_CODE_POSTFIX } from 'src/common/constants';
 
 
 @Controller('user')
@@ -22,12 +24,23 @@ export class UserController {
   private readonly logger = new Logger(UserController.name);
   constructor(private readonly userService: UserService) {}
 
-  @Post('code')
+  @Post('code/register')
   @HttpCode(HttpStatus.OK)
   @Public()
-  async send(@Body('email', ZodValidationPipe.emailSchema) email: string) {
-    return await this.userService.sendVerifyCode(email);
+  async sendRegisterVerifyCode(@Body('email', ZodValidationPipe.emailSchema) email: string) {
+    return await this.userService.sendVerifyCode(email, VERIFICATION_CODE_POSTFIX.USER_REGISTER);
   }
+  @Post('code/forget')
+  @HttpCode(HttpStatus.OK)
+  async sendForgetVerifyCode(@Body('email', ZodValidationPipe.emailSchema) email: string) {
+    return await this.userService.sendVerifyCode(email, VERIFICATION_CODE_POSTFIX.USER_FORGET_PASSWORD);
+  }
+  @Post('code/update/email')
+  @HttpCode(HttpStatus.OK)
+  async sendUpdateEmailVerifyCode(@Body('email', ZodValidationPipe.emailSchema) email: string) {
+    return await this.userService.sendVerifyCode(email, VERIFICATION_CODE_POSTFIX.USER_UPDATE_EMAIL);
+  }
+
 
   @Post('register')
   @HttpCode(HttpStatus.OK)
@@ -51,4 +64,21 @@ export class UserController {
   async self(@User() user: JwtPayload){
     return await this.userService.privateInfo(user.uid)
   }
+  @Put('update/info')
+  async updateInfo(@Body(ZodValidationPipe.userUpdateInfoSchema) body: UserUpdateInfo, @User() user: JwtPayload) {
+    return await this.userService.updateInfo({...body, uid: user.uid});
+  }
+  @Put('update/password')
+  async updatePassword(@Body(ZodValidationPipe.userUpdatePasswordSchema) body: UserUpdatePassword, @User() user: JwtPayload) {
+    return await this.userService.updatePassword({...body, uid: user.uid});
+  }
+  @Put('update/email')
+  async updateEmail(@Body(ZodValidationPipe.userUpdateEmailSchema) body: UserUpdateEmail, @User() user: JwtPayload) {
+    return await this.userService.updateEmail({...body, uid: user.uid});
+  }
+  @Put('update/forget')
+  async forgetPassword(@Body(ZodValidationPipe.userForgetPasswordSchema) body: UserForgetPassword, @User() user: JwtPayload) {
+    return await this.userService.forgetPassword({...body, uid: user.uid});
+  }
+
 }

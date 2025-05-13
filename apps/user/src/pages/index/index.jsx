@@ -30,7 +30,7 @@ export default function Index() {
   const [showRightScroll, setShowRightScroll] = useState(true);
 
   // 定义标签列表
-  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州','测试','food'];
+  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州','测试','辣的'];
 
   // 瀑布流算法
   const distributeItems = useCallback((items) => {
@@ -74,7 +74,7 @@ export default function Index() {
 
     try {
       const response = await Taro.request({
-        url: `https://daydreamer.net.cn/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
+        url: `http://172.30.216.50:3000/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
         method: 'GET',
       });
 

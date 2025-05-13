@@ -35,7 +35,7 @@ const TravelDetail = () => {
         }
 
         const response = await Taro.request({
-          url: `https://daydreamer.net.cn/passage?id=${id}`,
+          url: `http://172.30.216.50:3000/passage?id=${id}`,
           method: 'GET',
         });
 
@@ -67,7 +67,7 @@ const TravelDetail = () => {
       try {
         const res = await Taro.getNetworkType();
         const isAllowedNetwork = (
-          res.networkType === 'wifi'
+          res.networkType === 'wifi'||'5g'||'4g'
         );
         setIsWifi(isAllowedNetwork);
         console.log('网络状态', res.networkType);
@@ -81,7 +81,7 @@ const TravelDetail = () => {
     // 监听网络状态变化
     Taro.onNetworkStatusChange(res => {
       const isAllowedNetwork = (
-        res.networkType === 'wifi'
+        res.networkType === 'wifi'||'5g'||'4g'
       );
       setIsWifi(isAllowedNetwork);
       console.log('网络状态变化', res.networkType, isAllowedNetwork);

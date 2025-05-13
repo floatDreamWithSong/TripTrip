@@ -61,7 +61,7 @@ export default function myTravels() {
       const withHeight = result.map(item => ({
         ...item,
         imageHeight: getRandomHeight(),
-        state: travelStates[item.state],
+        // state: travelStates[item.state],
         rejectReason: '',
       }))
       setPassages(withHeight)

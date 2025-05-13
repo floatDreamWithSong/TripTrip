@@ -1,14 +1,17 @@
 import { View, Input, Button, Text } from '@tarojs/components';
 import { useState } from 'react';
-import { getUserInfo, login } from '../../../utils/request';
+import { login } from '../../../utils/auth';
 import Taro from '@tarojs/taro';
 import '../index.scss';
 import { formErrorToaster } from '../../../utils/error';
-
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 const LoginForm = ({ onSwitchToRegister }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!agreed) {
@@ -18,6 +21,8 @@ const LoginForm = ({ onSwitchToRegister }) => {
       });
       return;
     }
+    
+    setLoading(true);
     login(username, password)
       .then(() => {
         Taro.showToast({
@@ -29,8 +34,16 @@ const LoginForm = ({ onSwitchToRegister }) => {
         })
       })
       .catch(formErrorToaster)
-
+      .finally(() => {
+        setLoading(false);
+      });
   };
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const togglePasswordVisible = () => {
+    setPasswordVisible(!passwordVisible);
+  }
 
   return (
     <View className="login-form">
@@ -47,13 +60,20 @@ const LoginForm = ({ onSwitchToRegister }) => {
           value={username}
           onInput={(e) => setUsername(e.detail.value)}
         />
-        <Input
-          className="input-field"
-          type="password"
-          placeholder="密码"
-          value={password}
-          onInput={(e) => setPassword(e.detail.value)}
-        />
+        <View className="password-input-container">
+          <Input
+            className="input-field"
+            type={passwordVisible ? 'text' : 'password'}
+            placeholder="密码"
+            value={password}
+            onInput={(e) => setPassword(e.detail.value)}
+          />
+          <View className="password-visible-button" onClick={togglePasswordVisible}>
+            {
+              passwordVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+            }
+          </View>
+        </View>
       </View>
 
       <View className="agreement">
@@ -63,10 +83,12 @@ const LoginForm = ({ onSwitchToRegister }) => {
         <Text className="agreement-text">我已阅读并同意<Text className="link">服务协议</Text>和<Text className="link">隐私政策</Text></Text>
       </View>
 
-      <Button className="login-button" onClick={handleSubmit}>
-        登录
-        <View className="arrow-icon">→</View>
-      </Button>
+      <Spin spinning={loading} indicator={<LoadingOutlined spin />} size="large">
+        <Button className="login-button" onClick={handleSubmit} disabled={loading}>
+          登录
+          <View className="arrow-icon">→</View>
+        </Button>
+      </Spin>
 
       <View className="footer">
         <Text className="register-link" onClick={onSwitchToRegister}>

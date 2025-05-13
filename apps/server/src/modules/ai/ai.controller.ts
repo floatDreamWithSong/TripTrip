@@ -1,22 +1,18 @@
-import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Req, Res } from '@nestjs/common';
+import { Controller, Logger, Query, Sse, Res, Req } from '@nestjs/common';
 import { AiService } from './ai.service';
-import { Request, Response } from 'express';
+import { Response, Request } from 'express';
 import { z } from 'zod';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
+import { Observable } from 'rxjs';
+import { Public } from 'src/common/decorators/public.decorator';
 
-// 定义请求体验证模式
-const chatRequestSchema = z.object({
+// 定义查询参数验证模式
+const chatQuerySchema = z.object({
   prompt: z.string().min(1, '提示词不能为空'),
   model: z.string().optional(),
-  temperature: z.number().min(0).max(2).optional(),
-  top_p: z.number().min(0).max(1).optional(),
-  max_tokens: z.number().positive().optional(),
-  stream: z.boolean().optional(),
-  system: z.string().optional(),
-  fastMode: z.boolean().optional(), // 非深度思考模式
 });
 
-type ChatRequest = z.infer<typeof chatRequestSchema>;
+type ChatQuery = z.infer<typeof chatQuerySchema>;
 
 @Controller('ai')
 export class AiController {
@@ -26,91 +22,28 @@ export class AiController {
 
   /**
    * 流式返回AI模型回复的接口
-   * @param req 请求对象
-   * @param res 响应对象
+   * 使用SSE技术实现流式输出
+   * @param query 查询参数
    */
-  @Post('chat/stream')
-  @HttpCode(HttpStatus.OK)
+  @Sse('chat/stream')
   async chatStream(
-    @Req() req: Request,
-    @Res() res: Response,
-  ) {
-    try {
-      // 检查请求的Content-Type
-      const contentType = req.headers['content-type'] || '';
-      let body: any = null;
+    @Query(new ZodValidationPipe(chatQuerySchema)) query: ChatQuery,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: Request
+  ): Promise<Observable<{ data: string }>> {
+    this.logger.log(`收到流式聊天请求: ${JSON.stringify(query)}`);
 
-      // 如果是流式请求，直接从请求体获取数据
-      if (contentType.includes('text/event-stream')) {
-        // 从请求体中获取数据
-        let data = '';
-        req.on('data', (chunk) => {
-          data += chunk.toString();
-        });
+    // 创建Observable流和会话ID
+    const { stream, sessionId } = this.aiService.createSseStream(query.prompt, {
+      model: query.model,
+    });
 
-        await new Promise<void>((resolve, reject) => {
-          req.on('end', () => {
-            try {
-              if (data) {
-                body = JSON.parse(data);
-              } else {
-                body = { prompt: '' }; // 设置默认值，但会在验证时失败
-              }
-              resolve();
-            } catch (error) {
-              this.logger.error(`解析请求体失败: ${error.message}`);
-              res.status(400).json({ error: '无效的JSON格式' });
-              reject(error);
-            }
-          });
-        });
-      } else {
-        // 否则，使用标准的请求体
-        body = req.body || { prompt: '' }; // 设置默认值，但会在验证时失败
-      }
+    // 处理客户端断开连接
+    req.on('close', () => {
+      this.logger.log(`客户端断开连接，结束AI对话，会话ID: ${sessionId}`);
+      this.aiService.terminateStream(sessionId);
+    });
 
-      // 确保body不为null
-      if (!body) {
-        res.status(400).json({ error: '请求体不能为空' });
-        return;
-      }
-
-      // 手动验证请求体
-      const validationResult = chatRequestSchema.safeParse(body);
-      if (!validationResult.success) {
-        res.status(400).json({ 
-          error: '请求参数验证失败', 
-          details: validationResult.error.format() 
-        });
-        return;
-      }
-
-      const validatedBody = validationResult.data;
-      this.logger.log(`收到流式聊天请求: ${JSON.stringify(validatedBody)}`);
-      
-      // 使用新的流式聊天方法
-      await this.aiService.streamChat(
-        validatedBody.prompt,
-        res,
-        req,
-        {
-          model: validatedBody.model,
-          temperature: validatedBody.temperature,
-          top_p: validatedBody.top_p,
-          max_tokens: validatedBody.max_tokens,
-          system: validatedBody.system,
-          fastMode: validatedBody.fastMode,
-        }
-      );
-      // 注意：streamChat 方法会自行处理响应结束，不需要在这里调用 res.end()
-    } catch (error) {
-      this.logger.error(`流式聊天出错: ${error.message}`);
-      if (!res.headersSent) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-        res.end();
-      }
-    }
+    return stream;
   }
 } 

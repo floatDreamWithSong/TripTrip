@@ -2,13 +2,17 @@ import { View, Input, Button, Text } from '@tarojs/components';
 import { useState } from 'react';
 import Taro from '@tarojs/taro';
 import '../index.scss';
-import { getUserInfo, register, requestVerificationCode } from '../../../utils/request';
+import {  register, requestVerificationCode } from '../../../utils/request';
 import { formErrorToaster } from '../../../utils/error';
 import { z } from 'zod';
+import { Spin } from 'antd';
+import { EyeOutlined, EyeInvisibleOutlined, LoadingOutlined } from '@ant-design/icons';
 
 const RegisterForm = ({ onBack, onBackToLogin }) => {
   const [step, setStep] = useState(1);
   const [focusIndex, setFoucIndex] = useState(0);
+  const [loadingVerify, setLoadingVerify] = useState(false);
+  const [loadingRegister, setLoadingRegister] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -25,9 +29,13 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
   };
 
   const handleNextStep = async () => {
+    setLoadingVerify(true);
     await requestVerificationCode(formData)
       .then(setStep.bind(2))
       .catch(formErrorToaster)
+      .finally(() => {
+        setLoadingVerify(false);
+      });
   };
 
   const handleCodeInput = (index, value) => {
@@ -41,7 +49,6 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
     if (index < 5) {
       console.log(value)
       const nextInput = document.querySelectorAll(`.verification-code-inputer`)[index + 1];
-      console.log('nextInputer', nextInput)
       setFoucIndex(index + 1)
       nextInput.focus();
     }
@@ -55,7 +62,6 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
   const handleKeyDown = (index, e) => {
     index = focusIndex;
     const keyCode = e.detail.keyCode
-    console.log(e)
     // 处理删除键
     if (keyCode === 46 || keyCode === 8) {
       e.preventDefault();
@@ -63,14 +69,12 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
 
       // 如果当前输入框有值，清空当前输入框
       if (newCode[index]) {
-        console.log('delete', newCode[index])
         newCode[index] = '';
         setVerificationCode(newCode);
       }
       // 如果当前输入框为空且不是第一个输入框，跳转到前一个输入框
       else if (index > 0) {
         const prevInput = document.querySelectorAll(`.verification-code-inputer`)[index - 1];
-        console.log('preInputer', prevInput)
         prevInput.focus();
         newCode[index - 1] = '';
         setVerificationCode(newCode);
@@ -79,14 +83,13 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
     }
   };
   const checkPassword = () => new Promise(() => {
-    console.log(formData.checkPassword, formData.password)
     if (formData.checkPassword != formData.password) {
       throw Error('密码不一致！')
     }
   }).catch(formErrorToaster)
 
   const handleSubmit = async (code) => {
-    console.log(code)
+    setLoadingRegister(true);
     register({
       ...formData,
       verifyCode: code
@@ -102,6 +105,19 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
         onBackToLogin();
       })
       .catch(formErrorToaster)
+      .finally(() => {
+        setLoadingRegister(false);
+      });
+  }
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  
+  const togglePasswordVisible = () => {
+    setPasswordVisible(!passwordVisible);
+  }
+  
+  const toggleConfirmPasswordVisible = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
   }
   return (
     <View className="register-form">
@@ -111,7 +127,6 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
           <View className="form-header">
             <Text className="title">创建账号</Text>
           </View>
-
           <View className="input-group">
             <Input
               className="input-field"
@@ -127,27 +142,44 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
               value={formData.username}
               onInput={(e) => handleInputChange('username', e.detail.value)}
             />
-            <Input
-              className="input-field"
-              type="password"
-              placeholder="请设置密码"
-              value={formData.password}
-              onInput={(e) => handleInputChange('password', e.detail.value)}
-            />
-            <Input
-              className="input-field"
-              type="password"
-              placeholder="请确认密码"
-              onBlur={checkPassword}
-              value={formData.checkPassword}
-              onInput={(e) => handleInputChange('checkPassword', e.detail.value)}
-            />
+            <View className="password-input-container">
+              <Input
+                className="input-field"
+                type={passwordVisible ? 'text' : 'password'}
+                placeholder="请设置密码"
+                value={formData.password}
+                onInput={(e) => handleInputChange('password', e.detail.value)}
+              />
+              {/* 密码可见按钮 */}
+              <View className="password-visible-button" onClick={togglePasswordVisible}>
+                {
+                  passwordVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                }
+              </View>
+            </View>
+            <View className="password-input-container">
+              <Input
+                className="input-field"
+                type={confirmPasswordVisible ? 'text' : 'password'}
+                placeholder="请确认密码"
+                onBlur={checkPassword}
+                value={formData.checkPassword}
+                onInput={(e) => handleInputChange('checkPassword', e.detail.value)}
+              />
+              {/* 密码可见按钮 */}
+              <View className="password-visible-button" onClick={toggleConfirmPasswordVisible}>
+                {
+                  confirmPasswordVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                }
+              </View>
+            </View>
           </View>
-
-          <Button className="next-button" onClick={handleNextStep}>
-            下一步
-            <View className="arrow-icon">→</View>
-          </Button>
+          <Spin spinning={loadingVerify} indicator={<LoadingOutlined spin />} size="large">
+            <Button className="next-button" onClick={handleNextStep} disabled={loadingVerify}>
+              下一步
+              <View className="arrow-icon">→</View>
+            </Button>
+          </Spin>
         </>
       ) : (
         <>
@@ -156,21 +188,9 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
             <Text className="subtitle">验证码已发送至{formData.email}</Text>
           </View>
 
-          <View className="verification-code-container">
-            {verificationCode.map((digit, index) => (
-              // index === 0 ? (
-              //   <Input
-              //     key={index}
-              //     className="code-input verification-code-inputer"
-              //     type="number"
-              //     maxlength={1}
-              //     value={digit}
-              //     data-index={index}
-              //     focus
-              //     onInput={(e) => handleCodeInput(index, e.detail.value)}
-              //     onKeyDown={(e) => handleKeyDown(index, e)}
-              //   />
-              // ) : (
+          <Spin spinning={loadingRegister} indicator={<LoadingOutlined spin />} size="large">
+            <View className="verification-code-container">
+              {verificationCode.map((digit, index) => (
                 <Input
                   key={index}
                   className="code-input verification-code-inputer"
@@ -180,10 +200,12 @@ const RegisterForm = ({ onBack, onBackToLogin }) => {
                   data-index={index}
                   onInput={(e) => handleCodeInput(index, e.detail.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
+                  disabled={loadingRegister}
                 />
-              // )
-            ))}
-          </View>
+                // )
+              ))}
+            </View>
+          </Spin>
         </>
       )}
     </View>

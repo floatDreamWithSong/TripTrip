@@ -18,8 +18,34 @@ export class UserService {
     private readonly jwtUtils: JwtUtils,
     private readonly verificationCodeService: VerificationCodeService,
   ) {}
+  async updateAvatar(file: Express.Multer.File, uid: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        uid: uid,
+      },
+    });
+    if (!user) {
+      throw EXCEPTIONS.USER_NOT_FOUND;
+    }
+    const avatarUrl = `https://${await this.cosService.uploadFile(file)}`;
+    const oldAvatarUrl = user.avatar;
+    await this.prismaService.user.update({
+      where: {
+        uid: uid,
+      },
+      data: {
+        avatar: avatarUrl,
+      },
+    });
+    if (oldAvatarUrl) {
+      await this.cosService.deleteFileByUrl(oldAvatarUrl);
+    }
+    return {
+      avatar: avatarUrl,
+    }
+  }
   async updateInfo(body: UserUpdateInfo & {uid: number}) {
-    const user = await this.prismaService.user.update({
+    await this.prismaService.user.update({
       where: {
         uid: body.uid,
       },
@@ -235,7 +261,6 @@ export class UserService {
       data: {
         email: body.email,
         password: body.password,
-        avatar: 'https://wonderland-1328561145.cos.ap-shanghai.myqcloud.com/default.png',
         username: body.username
       },
     });

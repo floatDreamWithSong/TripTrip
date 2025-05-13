@@ -9,6 +9,8 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 
@@ -17,6 +19,8 @@ import { JwtPayload, UserForgetPassword, UserLogin, UserRegister, UserUpdateEmai
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
 import { User } from 'src/common/decorators/user.decorator';
 import { VERIFICATION_CODE_POSTFIX } from 'src/common/constants';
+import { UploadFilter } from 'src/common/utils/upload/upload.filter';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('user')
@@ -35,7 +39,7 @@ export class UserController {
   async sendForgetVerifyCode(@Body('email', ZodValidationPipe.emailSchema) email: string) {
     return await this.userService.sendVerifyCode(email, VERIFICATION_CODE_POSTFIX.USER_FORGET_PASSWORD);
   }
-  @Post('code/update/email')
+  @Post('code/email')
   @HttpCode(HttpStatus.OK)
   async sendUpdateEmailVerifyCode(@Body('email', ZodValidationPipe.emailSchema) email: string) {
     return await this.userService.sendVerifyCode(email, VERIFICATION_CODE_POSTFIX.USER_UPDATE_EMAIL);
@@ -64,21 +68,28 @@ export class UserController {
   async self(@User() user: JwtPayload){
     return await this.userService.privateInfo(user.uid)
   }
-  @Put('update/info')
+  @Put('info')
   async updateInfo(@Body(ZodValidationPipe.userUpdateInfoSchema) body: UserUpdateInfo, @User() user: JwtPayload) {
     return await this.userService.updateInfo({...body, uid: user.uid});
   }
-  @Put('update/password')
+  @Put('password')
   async updatePassword(@Body(ZodValidationPipe.userUpdatePasswordSchema) body: UserUpdatePassword, @User() user: JwtPayload) {
     return await this.userService.updatePassword({...body, uid: user.uid});
   }
-  @Put('update/email')
+  @Put('email')
   async updateEmail(@Body(ZodValidationPipe.userUpdateEmailSchema) body: UserUpdateEmail, @User() user: JwtPayload) {
     return await this.userService.updateEmail({...body, uid: user.uid});
   }
-  @Put('update/forget')
+  @Put('forget')
   async forgetPassword(@Body(ZodValidationPipe.userForgetPasswordSchema) body: UserForgetPassword, @User() user: JwtPayload) {
     return await this.userService.forgetPassword({...body, uid: user.uid});
+  }
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    fileFilter: (req, file, callback) => UploadFilter.fileFilter(file.fieldname, file, callback)
+  }))
+  async updateAvatar(@UploadedFile() file: Express.Multer.File, @User() user: JwtPayload) {
+    return await this.userService.updateAvatar(file, user.uid);
   }
 
 }

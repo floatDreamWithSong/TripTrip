@@ -1,5 +1,7 @@
 # TripTrip
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/floatDreamWithSong/TripTrip)
+
 TripTrip是一个基于pnpm workspace的monorepo项目，主要优点包括：
 
 1. **代码共享方便**：所有子包可以轻松共享公共验证逻辑代码（utils子包）和前后端数据类型定义（types子包）

@@ -1,9 +1,10 @@
-import { View, Text, Image } from '@tarojs/components';
+import { View, Text } from '@tarojs/components';
 import { useState, useEffect, useRef } from 'react';
 import { useDidHide } from '@tarojs/taro';
 import './editTravel.scss';
 import AddPicture from '../../components/addPicture';
-import Taro, { Component } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
+import { modifyPassage } from '../../utils/travelApi'
 import {
   Flex,
   Input,
@@ -169,7 +170,7 @@ export default function myTravels() {
     const startTime = Date.now();
 
     try {
-      const success = await submitTravel({
+      const success = await modifyPassage({
         title, content, images, videoFile, agreement, tags
       });
 
@@ -184,7 +185,7 @@ export default function myTravels() {
         Taro.removeStorageSync('editTravel');
 
         Taro.showToast({
-          title: '发布成功',
+          title: '修改成功',
           icon: 'success',
           duration: 2000
         });

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Button, Message, useToaster, Loader, Toggle } from 'rsuite';
+import { List, Button, Message, useToaster, Loader, ButtonGroup } from 'rsuite';
 import gsap from 'gsap';
 import { deletePassage, getAdminList, putReviewStatus } from '@/request/review';
 import { PASSAGE_STATUS } from '@triptrip/utils';
@@ -247,27 +247,35 @@ const ReviewList = () => {
 
   return (
     <>
-      <div className="review-list-header" style={{ marginBottom: '20px' }}>
-        <Toggle
-          checked={currentStatus === PASSAGE_STATUS.PENDING}
-          onChange={() => handleStatusChange(PASSAGE_STATUS.PENDING)}
-          style={{ marginRight: '10px' }}
-        >
-          待审核
-        </Toggle>
-        <Toggle
-          checked={currentStatus === PASSAGE_STATUS.APPROVED}
-          onChange={() => handleStatusChange(PASSAGE_STATUS.APPROVED)}
-          style={{ marginRight: '10px' }}
-        >
-          已通过
-        </Toggle>
-        <Toggle
-          checked={currentStatus === PASSAGE_STATUS.REJECTED}
-          onChange={() => handleStatusChange(PASSAGE_STATUS.REJECTED)}
-        >
-          已拒绝
-        </Toggle>
+      <div className="review-list-header" style={{ 
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+      }}>
+        <ButtonGroup>
+          <Button 
+            appearance={currentStatus === PASSAGE_STATUS.PENDING ? 'primary' : 'default'}
+            onClick={() => handleStatusChange(PASSAGE_STATUS.PENDING)}
+            size="md"
+          >
+            待审核
+          </Button>
+          <Button 
+            appearance={currentStatus === PASSAGE_STATUS.APPROVED ? 'primary' : 'default'}
+            onClick={() => handleStatusChange(PASSAGE_STATUS.APPROVED)}
+            size="md"
+          >
+            已通过
+          </Button>
+          <Button 
+            appearance={currentStatus === PASSAGE_STATUS.REJECTED ? 'primary' : 'default'}
+            onClick={() => handleStatusChange(PASSAGE_STATUS.REJECTED)}
+            size="md"
+          >
+            已拒绝
+          </Button>
+        </ButtonGroup>
       </div>
 
       <List hover style={{

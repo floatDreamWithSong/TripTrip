@@ -34,3 +34,7 @@ export const passageSearchMetaSchema = z.object({
     sortType: z.enum(['hot', 'latest', 'comprehensive']).optional(),
 })
 export type PassageSearchMeta = z.infer<typeof passageSearchMetaSchema>;
+export interface MessageItem {
+    content: string;
+    id: number;
+}

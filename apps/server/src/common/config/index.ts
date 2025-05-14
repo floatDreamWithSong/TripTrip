@@ -29,7 +29,8 @@ export class Configurations implements OnModuleInit {
   static COS_ENDPOINT: string;
   static COS_REGION: string = 'ap-shanghai';
   static CRYPTO_SECRET: string;
-
+  static API_KEY: string;
+  static BASE_URL: string;
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit() {
@@ -48,6 +49,11 @@ export class Configurations implements OnModuleInit {
     Configurations.COS_BUCKET = this.configService.getOrThrow<string>('COS_BUCKET');
     Configurations.COS_ENDPOINT = this.configService.getOrThrow<string>('COS_ENDPOINT');
     Configurations.CRYPTO_SECRET = this.configService.getOrThrow<string>('CRYPTO_SECRET');
+    Configurations.API_KEY = this.configService.getOrThrow<string>('API_KEY');
+    Configurations.BASE_URL = this.configService.getOrThrow<string>('BASE_URL');
+
+    console.log('Configurations.API_KEY', Configurations.API_KEY);
+    console.log('Configurations.BASE_URL', Configurations.BASE_URL);
 
     console.log('Configurations.BUCKET', Configurations.COS_BUCKET);
     console.log('access token expiration time', Configurations.ACCESS_TOKEN_EXPIRATION_TIME);

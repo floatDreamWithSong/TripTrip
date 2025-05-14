@@ -4,6 +4,7 @@ import { JwtPayload, PageQuery,  PASSAGE_STATUS, PassageReview } from '@triptrip
 import { PassageAdminService } from './passage.admin.service';
 import { PassageService } from '../passage.service';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validate.pipe';
+import { z } from 'zod';
 
 @Controller('passage/admin')
 export class PassageAdminController {
@@ -22,15 +23,16 @@ export class PassageAdminController {
     return this.passageAdminService.updateByAdmin(body.pid, body.status, body.reason);
   }
   /**
-   *  获取待审核文章列表
+   *  获取文章列表
    * @param query 
    * @returns 
    */
   @Get()
   @UserType('beyondUser')
-  async listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery) {
+  async listForAdmin(@Query(ZodValidationPipe.pageQuerySchema) query: PageQuery, 
+  @Query('status', new ZodValidationPipe(z.coerce.number().min(0).max(2).default(PASSAGE_STATUS.PENDING))) status: number) {
     return this.passageService.getPassages(query.page, query.limit, {
-      status: PASSAGE_STATUS.PENDING,
+      status,
       publishTime: 'asc'
     });
   }

@@ -19,16 +19,16 @@ export class UploadFilter {
     callback(null, true);
   }
 
-  static validateFileSize(files: { images?: Express.Multer.File[], video?: Express.Multer.File[], cover: Express.Multer.File[] }) {
+  static validateFileSize(files: { images?: Express.Multer.File[], video?: Express.Multer.File[], cover?: Express.Multer.File[] }, needCover: boolean = true) {
     files.images?.forEach((image) => {
       if (image.size > UploadFilter.imageSizeLimit) {
         throw EXCEPTIONS.IMAGE_SIZE_EXCEEDED;
       }
     });
-    if(files.cover === undefined){
+    if(files.cover === undefined && needCover){
       throw EXCEPTIONS.COVER_IMAGE_NOT_FOUND;
     }
-    files.cover.forEach((image) => {
+    files.cover?.forEach((image) => {
       if (image.size > UploadFilter.imageSizeLimit) {
         throw EXCEPTIONS.IMAGE_SIZE_EXCEEDED;
       }

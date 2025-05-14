@@ -48,16 +48,19 @@
     "@prisma/client": "^6.6.0",
     "@triptrip/utils": "workspace:^",
     "@types/nodemailer": "^6.4.17",
-    "axios": "^1.8.4",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.9.0",
     "cos-nodejs-sdk-v5": "^2.14.7",
     "date-fns": "^4.1.0",
     "ioredis": "^5.6.1",
     "nodemailer": "^6.10.1",
+    "openai": "^4.98.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "prisma": "^6.6.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

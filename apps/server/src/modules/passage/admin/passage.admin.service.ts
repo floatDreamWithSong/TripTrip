@@ -101,7 +101,6 @@ export class PassageAdminService {
     await this.prismaService.passage.update({
       where: {
         pid: pid,
-        status: PASSAGE_STATUS.PENDING,
         isDeleted: false
       },
       data: {

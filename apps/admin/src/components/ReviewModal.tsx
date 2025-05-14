@@ -47,7 +47,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
   const [previewVisible, setPreviewVisible] = useState(false);
   const [aiContent, setAiContent] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [eventSource, _] = useState<EventSource | null>(null);
+  const [eventSource,] = useState<EventSource | null>(null);
   const toaster = useToaster();
   const userData = useUserStore(state => state.userInfo);
   const isMobile = useMediaQuery('(max-width: 768px)');

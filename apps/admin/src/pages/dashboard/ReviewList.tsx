@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button, Message, useToaster, Loader, ButtonGroup } from 'rsuite';
 import { motion, AnimatePresence } from 'framer-motion';
 import { deletePassage, getAdminList, putReviewStatus } from '@/request/review';

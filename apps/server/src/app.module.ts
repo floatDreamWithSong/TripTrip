@@ -13,6 +13,8 @@ import { FavoriteModule } from './modules/favorite/favorite.module';
 import { FollowModule } from './modules/follow/follow.module';
 import { LikeModule } from './modules/like/like.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AiModule } from './modules/ai/ai.module';
+
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     FavoriteModule,
     FollowModule,
     ScheduleModule.forRoot(),
+    AiModule,
   ],
   providers: [
     {

@@ -35,7 +35,7 @@ const TravelDetail = () => {
         }
 
         const response = await Taro.request({
-          url: `http://daydreamer.net.cn/passage?id=${id}`,
+          url: `https://daydreamer.net.cn/passage?id=${id}`,
           method: 'GET',
         });
 

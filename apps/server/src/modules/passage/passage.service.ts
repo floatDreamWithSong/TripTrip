@@ -287,11 +287,12 @@ export class PassageService {
             isDeleted: false,
         };
 
-        // 如果有关键词，则搜索标题和内容
+        // 如果有关键词，则搜索标题和内容,作者名称
         if (keyword) {
             where.OR = [
                 { title: { contains: keyword } },
-                { content: { contains: keyword } }
+                // { content: { contains: keyword } },
+                { author: { username: { contains: keyword } } }
             ];
         }
 

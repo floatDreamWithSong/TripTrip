@@ -74,7 +74,7 @@ export default function Index() {
 
     try {
       const response = await Taro.request({
-        url: `http://daydreamer.net.cn/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
+        url: `https://daydreamer.net.cn/passage/list?page=${nextPage}&limit=${PAGE_SIZE}`,
         method: 'GET',
       });
 

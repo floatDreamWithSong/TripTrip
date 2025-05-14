@@ -2,8 +2,7 @@ import { Passage, PendingReviewPassages } from "@/types/passage";
 import { del, get, put } from ".";
 import { PageQuery, PassageReview } from "@triptrip/utils";
 
-
-export const getPendingList = (params: PageQuery) => {
+export const getAdminList = (params: PageQuery & { status?: number }) => {
   return get<PendingReviewPassages>('/passage/admin', { params });
 };
 export const getPassageDetail = (passageId: number) => {

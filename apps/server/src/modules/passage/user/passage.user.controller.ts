@@ -39,7 +39,7 @@ export class PassageUserController {
     },
     @User() user: JwtPayload
   ) {
-    UploadFilter.validateFileSize(files);
+    UploadFilter.validateFileSize(files, true);
     return this.passageUserService.createPassage({
       title: body.title,
       content: body.content,
@@ -50,7 +50,38 @@ export class PassageUserController {
       coverImage: files.cover[0]
     });
   }
-
+  @Put('')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'images', maxCount: 10 },
+    { name: 'video', maxCount: 1 },
+    { name: 'cover', maxCount: 1 }
+  ], {
+    fileFilter: (req, file, callback) => UploadFilter.fileFilter(file.fieldname, file, callback)
+  }))
+  async edit(
+    @Body(ZodValidationPipe.passageTextSchema) body: PassageText,
+    @Body('pid', ParseIntPipe) pid: number,
+    @UploadedFiles() files: {
+      images?: Express.Multer.File[],
+      video?: Express.Multer.File[],
+      cover?: Express.Multer.File[]
+    },
+    @User() user: JwtPayload,
+    @Body('removeImagesIds', new ZodValidationPipe(z.array(z.number()).optional())) deleteImagesIds?: number[],
+  ) {
+    UploadFilter.validateFileSize(files, false);
+    return this.passageUserService.updatePassage(pid, {
+      title: body.title,
+      content: body.content,
+      tags: body.tags,
+      images: files.images,
+      video: files.video? files.video[0]: undefined,
+      coverImage: files.cover? files.cover[0]: undefined,
+      deleteImagesIds,
+      uid: user.uid
+    });
+  }
   /**
    *  修改文章
    * @param user 

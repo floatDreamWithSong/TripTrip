@@ -130,64 +130,92 @@
 
 .travel-btn-section {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: left;
 }
 
 .reject-section {
-//   width: 45%;
-margin-left: 20px;
+    width: 100%;
+    margin: 0 10px;
 }
 
 .toggle-reason-btn {
-  color: #007aff;
-  font-size: 26rpx;
+    color: #007aff;
+    font-size: 24rpx;
 }
 
 .toggle-reason-btn {
-  margin: 20px 0;
-  padding: 8px 16px;
-  background-color: #ecdcdb;
-  color: #333;
-  font-size: 28rpx;
-  border-radius: 12rpx;
-  text-align: center;
-  width: fit-content;
-  border: 1px solid #ebafaa;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &:active {
-    background-color: #ec8881;
+    width: 85%;
+    // margin: 20px 0;
+    padding: 8px 16px;
+    background-color: #ecdcdb;
+    color: #333;
+    font-size: 24rpx;
+    border-radius: 12rpx;
+    text-align: center;
+    // width: fit-content;
+    border: 1px solid #ebafaa;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-  }
+
+    &:active {
+        background-color: #ec8881;
+        transition: all 0.3s ease;
+    }
+}
+
+.section-btn {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
 }
 
 .edit-btn {
-//   width: 45%;
-  font-size: 28rpx;
-  background-color: #6ec1e2;
-  margin: 20px 0;
-  padding: 8px 16px;
-  margin-left: 20px;
-  color: #333;
-  font-size: 28rpx;
-  border-radius: 12rpx;
-  text-align: center;
-  width: fit-content;
-  border: 1px solid #4abcea;
-  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &:active {
-    background-color: #12b3f3;
+    width: 40%;
+    background-color: #6ec1e2;
+    margin: 20px 10px;
+    padding: 8px 16px;
+    // margin-left: 20px;
+    color: #333;
+    font-size: 24rpx;
+    border-radius: 12rpx;
+    text-align: center;
+    //   width: fit-content;
+    border: 1px solid #4abcea;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-  }
+
+    &:active {
+        background-color: #12b3f3;
+        transition: all 0.3s ease;
+    }
+}
+
+.delete-btn {
+    width: 40%;
+    background-color: #dce26e;
+    margin: 20px 10px;
+    padding: 8px 16px;
+    // margin-left: 20px;
+    color: #333;
+    font-size: 24rpx;
+    border-radius: 12rpx;
+    text-align: center;
+    //   width: fit-content;
+    border: 1px solid #e1ea42;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+
+    &:active {
+        background-color: #e3ef07;
+        transition: all 0.3s ease;
+    }
 }
 
 .reject-reason {
-  color: #ff4d4f;
-  font-size: 24rpx;
-  margin-left: 20px;
-  margin-bottom: 20px;
+    color: #ff4d4f;
+    font-size: 24rpx;
+    margin-left: 20px;
+    margin-bottom: 20px;
 }

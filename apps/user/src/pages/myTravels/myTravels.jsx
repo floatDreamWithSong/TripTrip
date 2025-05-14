@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import './myTravels.scss';
 import MyCard from '../../components/MyCard';
 import { fetchMyPassages } from '../../utils/travelApi';
+import { set } from 'zod';
 
 const travelStates = ['已通过', '未通过', '待审核'];
 const rejectReasons = ['图片不符合社区规范', '内容包含敏感信息', '内容不符合规范', '违反相关法律法规']
@@ -36,6 +37,8 @@ export default function myTravels() {
   const [columns, setColumns] = useState([[], []]);
   const [passages, setPassages] = useState([])
 
+  let result = [];
+
   // 瀑布流分列算法（使用预分配的imageHeight）
   const distributeItems = useCallback((items) => {
     const cols = [[], []];
@@ -56,8 +59,8 @@ export default function myTravels() {
 
   useEffect(() => {
     const loadPassages = async () => {
-      // const result = await fetchMyPassages()
-      const result = mockTravels
+      // result = await fetchMyPassages()
+      result = mockTravels
       const withHeight = result.map(item => ({
         ...item,
         imageHeight: getRandomHeight(),
@@ -69,7 +72,7 @@ export default function myTravels() {
     }
 
     loadPassages()
-  }, [distributeItems])
+  }, [])
 
 
   const handleFilterClick = (filter, baseList = mockTravels) => {
@@ -81,6 +84,15 @@ export default function myTravels() {
       const filteredItems = baseList.filter((item) => item.state === filter);
       setColumns(distributeItems(filteredItems));
     }
+  };
+
+  const handleDelete = (pid) => {
+    setPassages(passages.filter(travel => travel.pid !== pid)); // 移除被删除的旅行记录
+
+    // 重新分配瀑布流布局
+    setTimeout(() => {
+        setColumns(distributeItems(passages.filter(travel => travel.pid !== pid)));
+    }, 300); // 等待CSS过渡效果完成
   };
 
 
@@ -173,7 +185,12 @@ export default function myTravels() {
         {columns.map((column, colIndex) => (
           <View className="column" key={`col-${colIndex}`}>
             {column.map((item) => (
-              <MyCard key={item.id} travel={item} />
+              <MyCard
+                key={item.pidDD}
+                travel={item}
+                onDelete={() => handleDelete(item.pid)}
+                className="myCard"
+              />
             ))}
           </View>
         ))}

@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Content, Form, Button, Panel, Message, useToaster } from 'rsuite';
+import { Container, Content, Form, Button, Panel, Message, useToaster, InputGroup } from 'rsuite';
 import { gsap } from 'gsap';
 import { useThemeStore } from '../../store/theme';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Eye, EyeOff } from 'lucide-react';
 import { UserLogin } from '@triptrip/utils';
 import { useMutation } from 'react-query';
 import { login } from '../../request/auth';
@@ -14,6 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
   const toaster = useToaster();
+  const [showPassword, setShowPassword] = useState(false);
   
   const isDarkMode = theme === 'dark';
 
@@ -103,7 +104,7 @@ const Login = () => {
                 backdropFilter: 'blur(10px)',
                 borderRadius: '15px',
                 padding: '30px',
-                width: '380px',
+                width: '360px',
                 boxShadow: isDarkMode
                   ? '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
                   : '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
@@ -164,14 +165,34 @@ const Login = () => {
                   }}>
                     密码
                   </Form.ControlLabel>
-                  <Form.Control
-                    name="password"
-                    type="password"
-                    style={{
-                      height: '40px',
-                      borderRadius: '8px',
-                    }}
-                  />
+                  <InputGroup inside style={{ width: '100%' }}>
+                    <Form.Control
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      style={{
+                        height: '40px',
+                        borderRadius: '8px 0 0 8px',
+                        flex: 1,
+                      }}
+                    />
+                    <InputGroup.Button 
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: isDarkMode ? '#cccccc' : '#666666',
+                        cursor: 'pointer',
+                        padding: '0 12px',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '0 8px 8px 0',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </InputGroup.Button>
+                  </InputGroup>
                 </Form.Group>
                 <Form.Group style={{ marginTop: '30px' }}>
                   <Button

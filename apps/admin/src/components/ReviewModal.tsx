@@ -11,6 +11,8 @@ import ArrowRightLine from '@rsuite/icons/ArrowRightLine';
 import CloseIcon from '@rsuite/icons/Close';
 import '../styles/ReviewModal.css';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { API_CONFIG } from '@/config/api';
+import { getStoredTokens } from '@/request';
 
 // 初始化markdown解析器
 const md = new MarkdownIt();
@@ -38,14 +40,104 @@ interface ReviewModalProps {
 const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [review, setReview] = useState<Review | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // 默认设置为加载中
+  const [isLoading, setIsLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
+  const [aiContent, setAiContent] = useState<string>('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const toaster = useToaster();
   const userData = useUserStore(state => state.userInfo);
   const isMobile = useMediaQuery('(max-width: 768px)');
+
+  // 清理 SSE 连接
+  useEffect(() => {
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [eventSource]);
+
+  // 处理 AI 审核
+  const handleAiReview = () => {
+    if (!passageId) return;
+    
+    setIsAiLoading(true);
+    setAiContent('');
+    
+    // 关闭之前的连接
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    // 获取存储的 token
+    const { accessToken, refreshToken } = getStoredTokens();
+
+    // 使用 fetch 建立 SSE 连接
+    fetch(`${API_CONFIG.baseURL}/ai/chat/stream?passageId=${passageId}`, {
+      headers: {
+        'Authorization': accessToken || '',
+        'X-Refresh-Token': refreshToken || '',
+        'Accept': 'text/event-stream',
+      },
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('SSE 连接失败');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('无法获取响应流');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      const processStream = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  setAiContent(prev => prev + data.content);
+                } catch (error) {
+                  console.error('解析 AI 响应失败:', error);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('处理流数据失败:', error);
+          toaster.push(
+            <Message type="error">AI 审核请求失败</Message>
+          );
+        } finally {
+          setIsAiLoading(false);
+        }
+      };
+
+      processStream();
+    }).catch(error => {
+      console.error('SSE 连接错误:', error);
+      setIsAiLoading(false);
+      toaster.push(
+        <Message type="error">AI 审核请求失败</Message>
+      );
+    });
+  };
 
   // 获取文章详情
   useEffect(() => {
@@ -247,43 +339,60 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   </div>
                 ) : (
                   <div className="cover-container">
-                      暂无图片
+                    暂无图片
                   </div>
                 )}
               </div>
               
-                <div>
-                  <h6 className="section-header">作者</h6>
-                  <div className="author-container">
-                    <Avatar 
-                      src={review?.authorAvatar} 
-                      alt={review?.author} 
-                      className="author-avatar"
-                      circle 
-                      size="sm"
-                    />
-                    <p>{review?.author}</p>
-                  </div>
-                </div>
-                <div>
-                  <h6 className="section-header">标签</h6>
-                  {review?.description && review.description.length > 0 ? (
-                    review.description.map(i=>
-                      <Tag key={i} color="blue" className="tag">{i}</Tag>
-                    )
-                  ) : (
-                    <p className="no-tags">暂无标签</p>
-                  )}
-                </div>
-                <div>
-                  <h6 className="section-header">内容</h6>
-                  <div 
-                    className="markdown-content" 
-                    dangerouslySetInnerHTML={{ __html: review?.content ? md.render(review.content) : '' }}
+              <div>
+                <h6 className="section-header">作者</h6>
+                <div className="author-container">
+                  <Avatar 
+                    src={review?.authorAvatar} 
+                    alt={review?.author} 
+                    className="author-avatar"
+                    circle 
+                    size="sm"
                   />
+                  <p>{review?.author}</p>
                 </div>
-  </div>
-
+              </div>
+              <div>
+                <h6 className="section-header">标签</h6>
+                {review?.description && review.description.length > 0 ? (
+                  review.description.map(i=>
+                    <Tag key={i} color="blue" className="tag">{i}</Tag>
+                  )
+                ) : (
+                  <p className="no-tags">暂无标签</p>
+                )}
+              </div>
+              <div>
+                <h6 className="section-header">内容</h6>
+                <Button 
+                  appearance="primary" 
+                  color="cyan" 
+                  onClick={handleAiReview}
+                  loading={isAiLoading}
+                  style={{ marginBottom: '16px' }}
+                >
+                  AI 审核
+                </Button>
+                {aiContent && (
+                  <div className="ai-review-container">
+                    <h6 className="section-header">AI 审核结果</h6>
+                    <div 
+                      className="markdown-content ai-content" 
+                      dangerouslySetInnerHTML={{ __html: md.render(aiContent) }}
+                    />
+                  </div>
+                )}
+                <div 
+                  className="markdown-content" 
+                  dangerouslySetInnerHTML={{ __html: review?.content ? md.render(review.content) : '' }}
+                />
+              </div>
+            </div>
           )}
         </Modal.Body>
         <Modal.Footer>

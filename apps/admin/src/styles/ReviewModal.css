@@ -243,3 +243,52 @@
   flex-direction: column;
   gap: 1rem;
 }
+
+.ai-review-container {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.ai-review-container .section-header {
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+.ai-content {
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+.ai-content p {
+  margin-bottom: 12px;
+}
+
+.ai-content ul, .ai-content ol {
+  margin-bottom: 12px;
+  padding-left: 24px;
+}
+
+.ai-content code {
+  background-color: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.ai-content pre {
+  background-color: #e9ecef;
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.ai-content blockquote {
+  border-left: 4px solid #2c3e50;
+  margin: 12px 0;
+  padding-left: 16px;
+  color: #6c757d;
+}

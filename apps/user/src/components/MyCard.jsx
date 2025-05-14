@@ -3,6 +3,7 @@ import { View, Image, Text } from '@tarojs/components';
 import './MyCard.scss';
 import { Button } from 'antd';
 import Taro from '@tarojs/taro';
+import { deletePassage } from '../utils/travelApi'
 
 const stateClassMap = {
   '已通过': 'approved',
@@ -10,7 +11,7 @@ const stateClassMap = {
   '待审核': 'pending'
 };
 
-const TravelCard = ({ travel }) => {
+const TravelCard = ({ travel, onDelete }) => {
   const [showReason, setShowReason] = useState(false);
 
   const toDetail = (id) => {
@@ -42,6 +43,16 @@ const TravelCard = ({ travel }) => {
     });
   };
 
+  const toDelete = async () => {
+    try {
+      await deletePassage(travel.pid); // 调用删除函数
+      onDelete(travel.pid); // 通知父组件删除成功
+    } catch (error) {
+      console.error('删除操作失败:', error);
+      // 处理删除失败的逻辑，例如提示用户
+    }
+  }
+
   return (
     <View
       className="travel-card"
@@ -56,14 +67,6 @@ const TravelCard = ({ travel }) => {
       />
       <View className="card-content">
         <Text className="travel-title">{travel.title}</Text>
-        <View className="user-info">
-          <Image
-            src={travel.author.avatar}
-            className="avatar"
-            mode="aspectFill"
-          />
-          <Text className="username">{travel.author.username}</Text>
-        </View>
       </View>
 
       <View
@@ -94,11 +97,19 @@ const TravelCard = ({ travel }) => {
         )}
         {/* 添加编辑按钮 */}
         {(travel.state === '待审核' || travel.state === '未通过') && (
-          <View className="edit-btn" onClick={(e) => {
-            e.stopPropagation();
-            toEdit(travel);
-          }}>
-            <View className='edit-btn-text'>编辑</View>
+          <View className='section-btn'>
+            <View className="edit-btn" onClick={(e) => {
+              e.stopPropagation();
+              toEdit(travel);
+            }}>
+              <View className='edit-btn-text'>编辑</View>
+            </View>
+            <View className="delete-btn" onClick={(e) => {
+              e.stopPropagation();
+              toDelete(travel);
+            }}>
+              <View className='delete-btn-text'>删除</View>
+            </View>
           </View>
         )}
       </View>

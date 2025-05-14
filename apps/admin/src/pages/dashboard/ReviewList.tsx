@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { deletePassage, getAdminList, putReviewStatus } from '@/request/review';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
-import ReviewModal from '@/components/ReviewModal';
+import ReviewModal from '@/components/ReviewModal/index';
 import { Review } from '@/types/review';
 import ReviewListItem from '@/components/ReviewListItem';
 import '../../styles/ReviewList.css';
@@ -139,7 +139,7 @@ const ReviewList = () => {
   }, []);
 
   // 处理审核操作
-  const handleReview = async (isApproved: boolean, isDelete: boolean = false) => {
+  const handleReview = async (isApproved: boolean, isDelete: boolean = false, rejectReason?: string) => {
     if (!selectedReviewId) return;
 
     const currentReview = reviews.find(r => r.id === selectedReviewId);
@@ -151,7 +151,7 @@ const ReviewList = () => {
       await putReviewStatus({
         pid: selectedReviewId,
         status: isApproved ? PASSAGE_STATUS.APPROVED : PASSAGE_STATUS.REJECTED,
-        reason: isApproved ? void 0 : '审核未通过'
+        reason: isApproved ? void 0 : (rejectReason || '审核未通过')
       });
     }
 
@@ -318,6 +318,8 @@ const ReviewList = () => {
         open={open}
         onClose={() => setOpen(false)}
         handleReview={handleReview}
+        status={currentStatus === PASSAGE_STATUS.PENDING ? 'pending' : 
+               currentStatus === PASSAGE_STATUS.APPROVED ? 'approved' : 'rejected'}
       />
     </>
   );

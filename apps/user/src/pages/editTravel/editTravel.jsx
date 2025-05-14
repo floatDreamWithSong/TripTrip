@@ -9,23 +9,17 @@ import {
   Input,
   Checkbox,
   Button,
-  ConfigProvider,
-  Space,
-  Modal,
-  message
+  Modal
 } from 'antd';
 import {
   FileTextOutlined,
   SettingOutlined,
-  PaperClipOutlined,
-  AntDesignOutlined,
-  PoweroffOutlined,
   SyncOutlined,
-  UploadOutlined
+  UploadOutlined,
+  LeftOutlined
 } from '@ant-design/icons';
 import { submitTravel } from '../../utils/travelApi';
 import { getAccessToken } from '../../utils/request';
-import { set } from 'zod';
 
 const TextArea = Input.TextArea;
 const draft = Taro.getStorageSync('editTravel');
@@ -75,8 +69,6 @@ export default function myTravels() {
       }
     };
 
-    // checkLoginStatus();
-    // Taro.removeStorageSync('editTravel');
     console.log('读取到的草稿内容:', draft);
   }, []);
 
@@ -109,14 +101,14 @@ export default function myTravels() {
     }
 
     // ✅ 清空本地状态
-    setTitle('');
-    setContent('');
-    setImages([]);
-    setVideoFile(null);
-    setAgreement(false);
-    setFiles([]);
-    setFile(null);
-    setTags([]);
+    // setTitle('');
+    // setContent('');
+    // setImages([]);
+    // setVideoFile(null);
+    // setAgreement(false);
+    // setFiles([]);
+    // setFile(null);
+    // setTags([]);
 
     Taro.removeStorageSync('next_page_url');
   });
@@ -154,11 +146,6 @@ export default function myTravels() {
   const [customTagInput, setCustomTagInput] = useState('');
   const inputRef = useRef(null);
 
-
-
-  // const redPackage = (Math.random() * 10).toFixed(1);
-  const redPackage = 2.5;
-  // const { styles } = useStyle();
   const allTagOptions = ['风景', '美食', '亲子', '情侣', '古镇', '露营', '轻徒步', '民宿体验'];
 
 
@@ -172,21 +159,6 @@ export default function myTravels() {
   };
 
   const enterLoading = async index => {
-    // const accessToken = await getAccessToken();
-    // if (!accessToken) {
-    //   Taro.setStorageSync('editTravel', {
-    //     title,
-    //     content,
-    //     images,
-    //     videoFile,
-    //     agreement,
-    //   });
-
-    //   safeNavigate('/pages/login/index');
-
-    //   return; // 阻止后续提交逻辑
-    // }
-
     setLoadings(prevLoadings => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
@@ -253,15 +225,17 @@ export default function myTravels() {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
+  const handleJumpBack = () => {
+    Taro.navigateBack();
+  }
+
   return (
     <View className='addTravel-container'>
-      <View className='redPackage'>
-        <View className='redPackage-icon'></View>
-        完成本次发布，最高可获得
-        <Text className='redPackage-num'>
-          {redPackage}
-        </Text>
-        元现金红包
+      <View className='backButton'>
+        <LeftOutlined 
+          className='backIcon'
+          onClick={() => handleJumpBack()}
+        />
       </View>
       <View className="photos-container">
         <AddPicture
@@ -280,13 +254,6 @@ export default function myTravels() {
             placeholder="填写标题更容易上精选"
             variant="borderless"
           />
-          {/* <Input
-            showCount
-            maxLength={100}
-            onChange={onChange}
-            placeholder="disable resize"
-            style={{ height: 120, resize: 'none' }}
-          /> */}
           <TextArea
             value={content}
             onChange={e => {
@@ -319,9 +286,6 @@ export default function myTravels() {
             <FileTextOutlined className='tagIcon' />
             <Text className="tag">文字模板 </Text>
           </View>
-          {/* <View className="tagButton" onClick={() => handleAddTag("风景")}>
-            <Text className="tag"># 话题 </Text>
-          </View> */}
           <View className="tagButton" onClick={() => {
             setSelectedTagOptions(tags);
             setIsModalOpen(true)
@@ -355,10 +319,6 @@ export default function myTravels() {
 
         {/* 底部复选框 */}
         <View className="checkboxSection">
-          {/* <CheckBox
-            value={agreement}
-            onValueChange={setChecked => setAgreement(setChecked)}
-          /> */}
           <Checkbox
             checked={agreement} // ✅ 绑定 state，成为受控组件
             onChange={(e) => setAgreement(e.target.checked)} // 注意这里要用 e.target.checked
@@ -369,31 +329,6 @@ export default function myTravels() {
         </View>
       </View>
       <View className='publish-container'>
-        {/* <View className='draft' onClick={() => {
-          const draftData = {
-            title,
-            content,
-            images,
-            videoFile,
-            agreement,
-            tags
-          };
-          Taro.setStorageSync('editTravel', draftData);
-          Taro.showToast({
-            title: '已存为草稿',
-            icon: 'success',
-            duration: 1500
-          });
-          setTimeout(() => {
-            Taro.navigateTo({
-              url: '/pages/myTravels/myTravels'
-            });
-          }, 1500)
-        }}>
-          <PaperClipOutlined />
-          <View className='draftText'>存草稿</View>
-        </View> */}
-
         <View className='publish'>
           <Button
             type="primary"
@@ -463,7 +398,6 @@ export default function myTravels() {
           <Text type="secondary" style={{ fontSize: 12 }}>（最多10个字符）</Text>
         </View>
       </Modal>
-
 
     </View>
   )

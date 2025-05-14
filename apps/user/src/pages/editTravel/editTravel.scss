@@ -4,32 +4,9 @@
     // background-color: pink;
 }
 
-.redPackage {
-    width: 95%;
-    height: 60px;
-    margin: 0 auto;
-    line-height: 60px;
-    font-size: 28px;
-    display: flex;
-    flex-direction: row;
-    color: #7a746b;
-    background: linear-gradient(135deg, #fcf6f2, #fee7d0);
-    border-radius: 20px;
-    margin-top: 80px;
-}
-
-.redPackage-icon {
-    width: 40px;
-    height: 40px;
-    margin: 10px;
-    background-image: url(../../assets/redPackage.png);
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.redPackage-num {
-    color: #ec9238;
+.backButton {
+    margin: 40px;
+    margin-bottom: 20px;
 }
 
 .photos-container {

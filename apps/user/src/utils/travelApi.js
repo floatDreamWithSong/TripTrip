@@ -1,7 +1,5 @@
-// src/api/travelApi.js
+// src/utils/travelApi.js
 import Taro from '@tarojs/taro';
-
-
 
 export async function submitTravel({ title, value, images, videoFile, agreement, tags }) {
   try {
@@ -116,9 +114,7 @@ export async function fetchMyPassages() {
       method: 'GET',
       headers: {
         'Authorization': Authorization,
-        'X-Refresh-Token': X_Refresh_Token,
-        // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
-        // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
+        'X-Refresh-Token': X_Refresh_Token
       }
     })
 
@@ -154,9 +150,7 @@ export async function deletePassage(passageId) {
         passageId: passageId, // 传递 passageId 参数
         headers: {
           'Authorization': Authorization,
-          'X-Refresh-Token': X_Refresh_Token,
-          // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
-          // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
+          'X-Refresh-Token': X_Refresh_Token
         }
       },
     });
@@ -169,3 +163,30 @@ export async function deletePassage(passageId) {
   }
 }
 
+export async function modifyPassage(params) {
+  const Authorization = await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '')
+  const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
+
+  try {
+    const response = await Taro.request({
+      url: 'https://daydreamer.net.cn/passage/user', // 你的后端API地址
+      method: 'PUT',
+      data: params,
+      headers: {
+        'Authorization': Authorization,
+        'X-Refresh-Token': X_Refresh_Token,
+      },
+    });
+
+    if (response.statusCode === 200) {
+      console.log('修改游记成功', response.data);
+      return response.data;
+    } else {
+      console.error('修改游记失败', response);
+      throw new Error(response.data.message || '修改游记失败');
+    }
+  } catch (error) {
+    console.error('修改游记请求错误:', error);
+    throw error;
+  }
+}

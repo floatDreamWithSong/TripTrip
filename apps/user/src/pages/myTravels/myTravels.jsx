@@ -3,8 +3,8 @@ import { useLoad } from '@tarojs/taro';
 import { useState, useCallback, useEffect } from 'react';
 import './myTravels.scss';
 import MyCard from '../../components/MyCard';
-import { fetchMyPassages } from '../../utils/travelApi';
-import { set } from 'zod';
+import { getUserInfo } from '../../utils/user'
+import { fetchMyPassages } from '../../utils/travelApi'
 
 const travelStates = ['已通过', '未通过', '待审核'];
 const rejectReasons = ['图片不符合社区规范', '内容包含敏感信息', '内容不符合规范', '违反相关法律法规']
@@ -36,6 +36,20 @@ export default function myTravels() {
   const [selectedFilter, setSelectedFilter] = useState('全部');
   const [columns, setColumns] = useState([[], []]);
   const [passages, setPassages] = useState([])
+  const [userInfo, setUserInfo] = useState({
+    uid: 0,
+    email: '',
+    username: '',
+    gender: 0,
+    avatar: '',
+    userType: 0,
+    registerTime: '',
+    _count: {
+      passages: 0,
+      followers: 0,
+      following: 0,
+    },
+  });
 
   let result = [];
 
@@ -57,25 +71,45 @@ export default function myTravels() {
     return cols;
   }, []);
 
-  useEffect(() => {
-    const loadPassages = async () => {
-      // result = await fetchMyPassages()
-      result = mockTravels
+  const handleGetUserInfo = async () => {
+    try {
+      const result = await getUserInfo();
+      setUserInfo(result);
+      Taro.showToast({
+        title: '获取用户信息成功',
+        icon: 'success',
+      });
+      console.log('用户信息:', result);
+    } catch (error) {
+      Taro.showToast({
+        title: '获取用户信息失败，请登录后重试',
+        icon: 'none',
+      });
+    }
+  };
+
+  const loadPassages = async () => {
+    try {
+      const result = await fetchMyPassages();
       const withHeight = result.map(item => ({
         ...item,
         imageHeight: getRandomHeight(),
         rejectReason: '',
-      }))
-      setPassages(withHeight)
-
-      handleFilterClick('全部', withHeight)
+      }));
+      setPassages(withHeight);
+      handleFilterClick('全部', withHeight);
+    } catch (error) {
+      console.error('加载游记失败:', error);
     }
+  };
 
-    loadPassages()
-  }, [])
+  useEffect(() => {
+    handleGetUserInfo();
+    loadPassages();
+  }, []);
 
 
-  const handleFilterClick = (filter, baseList = mockTravels) => {
+  const handleFilterClick = (filter, baseList = result) => {
     setSelectedFilter(filter);
 
     if (filter === '全部') {
@@ -91,7 +125,7 @@ export default function myTravels() {
 
     // 重新分配瀑布流布局
     setTimeout(() => {
-        setColumns(distributeItems(passages.filter(travel => travel.pid !== pid)));
+      setColumns(distributeItems(passages.filter(travel => travel.pid !== pid)));
     }, 300); // 等待CSS过渡效果完成
   };
 
@@ -112,14 +146,16 @@ export default function myTravels() {
       <View className="titleBlock">
         <View className="userTitle">
           <View className="userAvatar"></View>
-          <View className="userName">M54****2747</View>
+          <View className="userName">{userInfo.username || "未登录"}</View>
         </View>
         <View className='userBlock'>
           <View className='userBlockTitle'>
-            <View className="userBlockAvatar"></View>
+            <View className="userBlockAvatar">
+              <Image src={userInfo.avatar} />
+            </View>
             <View className='userBlockInfo'>
-              <View className="userBlockName">M54****2747</View>
-              <View className='userBlockIP'>IP属地: 上海</View>
+              <View className="userBlockName">{userInfo.email || "未登录"}</View>
+              <View className='userBlockIP'>性别：{userInfo.gender === 0 ? '男' : '女'}</View>
             </View>
             <View className="userBlockLevel">Lv.1</View>
           </View>
@@ -128,15 +164,15 @@ export default function myTravels() {
             <View className='userInfoCount'>
               <View className='userInfoItem'>
                 <View className='userInfoItemTitle'>粉丝</View>
-                <View className='userInfoItemNum'>{fans}</View>
+                <View className='userInfoItemNum'>{userInfo._count.followers || 0}</View>
               </View>
               <View className='userInfoItem'>
                 <View className='userInfoItemTitle'>关注</View>
-                <View className='userInfoItemNum'>{follows}</View>
+                <View className='userInfoItemNum'>{userInfo._count.following}</View>
               </View>
               <View className='userInfoItem'>
-                <View className='userInfoItemTitle'>获赞</View>
-                <View className='userInfoItemNum'>{loves}</View>
+                <View className='userInfoItemTitle'>发布</View>
+                <View className='userInfoItemNum'>{userInfo._count.passages}</View>
               </View>
             </View>
             <View className='userBadgeBlock'>创作实习生</View>

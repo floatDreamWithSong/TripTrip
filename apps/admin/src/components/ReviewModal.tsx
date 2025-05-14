@@ -146,6 +146,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
       setReview(null); // 清空之前的数据
       setImageLoaded({}); // 重置图片加载状态
       setVideoLoaded(false); // 重置视频加载状态
+      setAiContent('');
       fetchPassageDetail(passageId);
     }
     // 关闭模态框时重置状态

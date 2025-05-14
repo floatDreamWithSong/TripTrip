@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Button, Message, useToaster, Loader } from 'rsuite';
+import { List, Button, Message, useToaster, Loader, Toggle } from 'rsuite';
 import gsap from 'gsap';
-import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
+import { deletePassage, getAdminList, putReviewStatus } from '@/request/review';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
 import ReviewModal from '@/components/ReviewModal';
@@ -18,6 +18,7 @@ const ReviewList = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<number>(PASSAGE_STATUS.PENDING);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
   const listItemsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
@@ -31,7 +32,7 @@ const ReviewList = () => {
       try {
         setIsLoading(true);
         setIsError(false);
-        const response = await getPendingList({ page, limit: 10 });
+        const response = await getAdminList({ page, limit: 10, status: currentStatus });
         
         if (response?.data) {
           const newReviews = response.data.map((passage: PendingReviewPassages) => ({
@@ -73,7 +74,7 @@ const ReviewList = () => {
     };
 
     fetchData();
-  }, [page]);
+  }, [page, currentStatus]);
 
   // 检测新增的元素并执行动画
   useEffect(() => {
@@ -236,8 +237,39 @@ const ReviewList = () => {
     setOpen(true);
   };
 
+  // 处理状态切换
+  const handleStatusChange = (status: number) => {
+    setCurrentStatus(status);
+    setPage(1);
+    setReviews([]);
+    setHasMore(true);
+  };
+
   return (
     <>
+      <div className="review-list-header" style={{ marginBottom: '20px' }}>
+        <Toggle
+          checked={currentStatus === PASSAGE_STATUS.PENDING}
+          onChange={() => handleStatusChange(PASSAGE_STATUS.PENDING)}
+          style={{ marginRight: '10px' }}
+        >
+          待审核
+        </Toggle>
+        <Toggle
+          checked={currentStatus === PASSAGE_STATUS.APPROVED}
+          onChange={() => handleStatusChange(PASSAGE_STATUS.APPROVED)}
+          style={{ marginRight: '10px' }}
+        >
+          已通过
+        </Toggle>
+        <Toggle
+          checked={currentStatus === PASSAGE_STATUS.REJECTED}
+          onChange={() => handleStatusChange(PASSAGE_STATUS.REJECTED)}
+        >
+          已拒绝
+        </Toggle>
+      </div>
+
       <List hover style={{
         overflow:'hidden'
       }} >

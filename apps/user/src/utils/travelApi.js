@@ -114,15 +114,9 @@ export async function fetchMyPassages() {
     const res = await Taro.request({
       url: 'https://daydreamer.net.cn/passage/user',
       method: 'GET',
-<<<<<<< HEAD
-      header: {
-        'Authorization': Authorization,
-        'X_Refresh_Token': X_Refresh_Token,
-=======
       headers: {
         'Authorization': Authorization,
         'X-Refresh-Token': X_Refresh_Token,
->>>>>>> fb282804b690d6e0f204a15de2c02f3e5d4d84b7
         // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
         // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
       }
@@ -144,5 +138,33 @@ export async function fetchMyPassages() {
   } catch (error) {
     console.error('请求出错:', error)
     return []
+  }
+}
+
+export async function deletePassage(passageId) {
+  const Authorization = await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '')
+  const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
+
+  try {
+    // 向后端发送 DELETE 请求
+    const response = await Taro.request({
+      url: 'https://daydreamer.net.cn/passage', // 后端API地址
+      method: 'DELETE',
+      data: {
+        passageId: passageId, // 传递 passageId 参数
+        headers: {
+          'Authorization': Authorization,
+          'X-Refresh-Token': X_Refresh_Token,
+          // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
+          // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
+        }
+      },
+    });
+
+    console.log('删除成功', response);
+    return response; // 返回删除成功的响应
+  } catch (error) {
+    console.error('删除失败:', error);
+    return Promise.reject(error); // 返回错误信息
   }
 }

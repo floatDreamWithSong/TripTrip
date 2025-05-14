@@ -25,7 +25,7 @@ export const request = async (url, method = 'GET', data = {}) => {
   }
   console.log('request headers', headers);
   const res = await Taro.request({
-    url: `http://172.30.216.50:3000${url}`,
+    url: `http://daydreamer.net.cn${url}`,
     method,
     data,
     header: headers

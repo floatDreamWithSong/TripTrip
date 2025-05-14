@@ -78,7 +78,7 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
     const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
     console.log('Authorization', Authorization)
     console.log('X_Refresh_Token', X_Refresh_Token)
-    const response = await fetch('http://172.30.216.50:3000/passage/user', {
+    const response = await fetch('http://daydreamer.net.cn/passage/user', {
       method: 'POST',
       body: formData,
       headers: {
@@ -112,7 +112,7 @@ export async function fetchMyPassages() {
 
   try {
     const res = await Taro.request({
-      url: 'http://172.30.216.50:3000/passage/user',
+      url: 'http://daydreamer.net.cn/passage/user',
       method: 'GET',
       headers: {
         'Authorization': Authorization,

@@ -105,7 +105,7 @@ export class PassageAdminService {
       },
       data: {
         status: status,
-        reason: reason,
+        reason: status === PASSAGE_STATUS.REJECTED ? reason : null,
         reviewTime: new Date(),
       }
     })

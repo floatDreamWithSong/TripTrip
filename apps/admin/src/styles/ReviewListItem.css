@@ -6,6 +6,11 @@
   background-color: var(--rs-gray-50) !important;
 }
 
+/* 添加黑夜模式下的 hover 效果 */
+.rs-theme-dark .review-list-item:hover .review-item-panel {
+  background-color: var(--rs-gray-800) !important;
+}
+
 .review-item-panel {
   border: none !important;
   box-shadow: none !important;

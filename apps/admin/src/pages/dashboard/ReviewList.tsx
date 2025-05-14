@@ -9,12 +9,6 @@ import { Review } from '@/types/review';
 import ReviewListItem from '@/components/ReviewListItem';
 import '../../styles/ReviewList.css';
 
-// 创建一个加载占位符组件
-const LoadingPlaceholder = () => (
-  <div className="review-list-loading-placeholder">
-    <Loader size="md" content="加载中..." vertical />
-  </div>
-);
 
 const ReviewList = () => {
   const [page, setPage] = useState(1);
@@ -32,75 +26,73 @@ const ReviewList = () => {
   const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
   const loadingRef = useRef(false);
 
-  // 获取数据
-  useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      if (loadingRef.current) return;
+  const fetchData = useCallback(async () => {
+    if (loadingRef.current) return;
+    
+    try {
+      loadingRef.current = true;
+      setIsLoading(true);
+      setIsError(false);
+      console.log('Fetching data...', { page, status: currentStatus });
       
-      try {
-        loadingRef.current = true;
-        setIsLoading(true);
-        setIsError(false);
-        const response = await getAdminList({ page, limit: 10, status: currentStatus });
-        
-        if (!isMounted) return;
-        
-        if (response?.data) {
-          const newReviews = response.data.map((passage: PendingReviewPassages) => ({
-            id: passage.pid || 0,
-            title: passage.title || '',
-            author: passage.author?.username || '',
-            coverImage: passage.coverImageUrl || '',
-            images: [],
-            content: '',
-            description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
-            status: 'pending',
-          }));
+      const response = await getAdminList({ page, limit: 10, status: currentStatus });
+      console.log('Response received:', response);
+      
+      if (response?.data) {
+        const newReviews = response.data.map((passage: PendingReviewPassages) => ({
+          id: passage.pid || 0,
+          title: passage.title || '',
+          author: passage.author?.username || '',
+          coverImage: passage.coverImageUrl || '',
+          images: [],
+          content: '',
+          description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
+          status: 'pending',
+        }));
 
-          if(newReviews.length === 0) {
-            toaster.push(
-              <Message type="info">
-                已经到底了~
-              </Message>
-            );
-            setHasMore(false);
-          }
-          
-          if (page === 1) {
-            setReviews(newReviews as Review[]);
-          } else {
-            setReviews(prev => {
-              const existingIds = new Set(prev.map(review => review.id));
-              const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
-              return [...prev, ...uniqueNewReviews] as Review[];
-            });
-          }
+        console.log('Processed reviews:', newReviews);
+
+        if(newReviews.length === 0) {
+          toaster.push(
+            <Message type="info">
+              已经到底了~
+            </Message>
+          );
+          setHasMore(false);
         }
-      } catch (err) {
-        if (!isMounted) return;
-        setIsError(true);
-        setError(err instanceof Error ? err : new Error('加载失败'));
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-          loadingRef.current = false;
+        
+        if (page === 1) {
+          setReviews(newReviews as Review[]);
+        } else {
+          setReviews(prev => {
+            const existingIds = new Set(prev.map(review => review.id));
+            const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
+            return [...prev, ...uniqueNewReviews] as Review[];
+          });
         }
       }
-    };
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setIsError(true);
+      setError(err instanceof Error ? err : new Error('加载失败'));
+    } finally {
+      setIsLoading(false);
+      loadingRef.current = false;
+    }
+  }, [page, currentStatus, toaster]);
 
+  // 初始加载和状态变化时获取数据
+  useEffect(() => {
+    console.log('Effect triggered', { page, currentStatus });
     fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, currentStatus]);
+  }, [fetchData]);
 
   // 设置 Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
+          console.log('Intersection detected, loading more...');
           setPage(prev => prev + 1);
         }
       },
@@ -120,6 +112,14 @@ const ReviewList = () => {
     };
   }, [hasMore]);
 
+  // 更新观察的元素
+  useEffect(() => {
+    if (lastElementRef.current && observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current.observe(lastElementRef.current);
+    }
+  }, [reviews]);
+
   // 重置数据的函数
   const resetData = useCallback(() => {
     setPage(1);
@@ -130,13 +130,13 @@ const ReviewList = () => {
   }, []);
 
   // 处理状态切换
-  const handleStatusChange = (status: number) => {
+  const handleStatusChange = useCallback((status: number) => {
     setCurrentStatus(status);
     setPage(1);
     setReviews([]);
     setHasMore(true);
     loadingRef.current = false;
-  };
+  }, []);
 
   // 处理审核操作
   const handleReview = async (isApproved: boolean, isDelete: boolean = false) => {
@@ -175,9 +175,9 @@ const ReviewList = () => {
     visible: {
       opacity: 1,
       transition: {
-        delayChildren: 0.1,
-        staggerChildren: 1,
-        staggerDirection: 1
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+        delayChildren: 0.1
       }
     }
   };
@@ -185,28 +185,26 @@ const ReviewList = () => {
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: 30,
-      scale: 0.95,
-      filter: "blur(4px)"
+      y: 20,
+      scale: 0.98,
     },
     visible: { 
       opacity: 1, 
       y: 0, 
       scale: 1,
-      filter: "blur(0px)",
       transition: {
         type: "spring",
-        stiffness: 300,
-        damping: 24,
-        mass: 1
+        stiffness: 200,
+        damping: 20,
+        mass: 0.8
       }
     },
     exit: { 
       opacity: 0,
-      scale: 0.8,
-      filter: "blur(4px)",
+      y: -20,
+      scale: 0.98,
       transition: {
-        duration: 0.2
+        duration: 0.15
       }
     }
   };
@@ -244,7 +242,16 @@ const ReviewList = () => {
         </ButtonGroup>
       </div>
 
-      <Suspense fallback={<LoadingPlaceholder />}>
+      { isLoading && reviews.length === 0 ? (
+        <div className="review-list-loader" style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          padding: '40px 0'
+        }}>
+          <Loader size="md" content="加载中..." vertical />
+        </div>
+      ) : (
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -278,18 +285,29 @@ const ReviewList = () => {
             ))}
           </AnimatePresence>
         </motion.div>
-      </Suspense>
+      )}
 
-      {isLoading && (
-        <div className="review-list-loader">
-          <Loader content="加载中..." />
+      {isLoading && reviews.length > 0 && (
+        <div className="review-list-loader" style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          padding: '20px 0'
+        }}>
+          <Loader size="sm" content="加载更多..." />
         </div>
       )}
 
       {isError && (
-        <div className="review-list-error">
-          {error instanceof Error ? error.message : '加载失败'}
-          <Button appearance="link" onClick={resetData}>
+        <div className="review-list-error" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '20px 0'
+        }}>
+          <div>{error instanceof Error ? error.message : '加载失败'}</div>
+          <Button appearance="primary" onClick={resetData}>
             重试
           </Button>
         </div>

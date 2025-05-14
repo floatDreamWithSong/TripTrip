@@ -247,18 +247,24 @@
 .ai-review-container {
   margin-bottom: 24px;
   padding: 16px;
-  background-color: #f8f9fa;
+  background-color: var(--rs-gray-50);
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--rs-gray-200);
+}
+
+/* 添加黑夜模式下的样式 */
+.rs-theme-dark .ai-review-container {
+  background-color: var(--rs-gray-800);
+  border-color: var(--rs-gray-700);
 }
 
 .ai-review-container .section-header {
-  color: #2c3e50;
+  color: var(--rs-text-primary);
   margin-bottom: 12px;
 }
 
 .ai-content {
-  color: #2c3e50;
+  color: var(--rs-text-primary);
   line-height: 1.6;
 }
 
@@ -272,23 +278,38 @@
 }
 
 .ai-content code {
-  background-color: #e9ecef;
+  background-color: var(--rs-gray-100);
   padding: 2px 4px;
   border-radius: 4px;
   font-family: monospace;
 }
 
+/* 黑夜模式下的代码块样式 */
+.rs-theme-dark .ai-content code {
+  background-color: var(--rs-gray-700);
+}
+
 .ai-content pre {
-  background-color: #e9ecef;
+  background-color: var(--rs-gray-100);
   padding: 12px;
   border-radius: 4px;
   overflow-x: auto;
   margin-bottom: 12px;
 }
 
+/* 黑夜模式下的预格式化文本样式 */
+.rs-theme-dark .ai-content pre {
+  background-color: var(--rs-gray-700);
+}
+
 .ai-content blockquote {
-  border-left: 4px solid #2c3e50;
+  border-left: 4px solid var(--rs-gray-300);
   margin: 12px 0;
   padding-left: 16px;
-  color: #6c757d;
+  color: var(--rs-text-secondary);
+}
+
+/* 黑夜模式下的引用样式 */
+.rs-theme-dark .ai-content blockquote {
+  border-left-color: var(--rs-gray-600);
 }

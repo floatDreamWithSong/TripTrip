@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { List, Button, Message, useToaster, Loader, ButtonGroup } from 'rsuite';
-import gsap from 'gsap';
+import { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import { Button, Message, useToaster, Loader, ButtonGroup } from 'rsuite';
+import { motion, AnimatePresence } from 'framer-motion';
 import { deletePassage, getAdminList, putReviewStatus } from '@/request/review';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
@@ -8,6 +8,13 @@ import ReviewModal from '@/components/ReviewModal';
 import { Review } from '@/types/review';
 import ReviewListItem from '@/components/ReviewListItem';
 import '../../styles/ReviewList.css';
+
+// 创建一个加载占位符组件
+const LoadingPlaceholder = () => (
+  <div className="review-list-loading-placeholder">
+    <Loader size="md" content="加载中..." vertical />
+  </div>
+);
 
 const ReviewList = () => {
   const [page, setPage] = useState(1);
@@ -21,18 +28,23 @@ const ReviewList = () => {
   const [currentStatus, setCurrentStatus] = useState<number>(PASSAGE_STATUS.PENDING);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
-  const listItemsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
-  const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
   const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
+  const loadingRef = useRef(false);
 
   // 获取数据
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
+      if (loadingRef.current) return;
+      
       try {
+        loadingRef.current = true;
         setIsLoading(true);
         setIsError(false);
         const response = await getAdminList({ page, limit: 10, status: currentStatus });
+        
+        if (!isMounted) return;
         
         if (response?.data) {
           const newReviews = response.data.map((passage: PendingReviewPassages) => ({
@@ -66,64 +78,29 @@ const ReviewList = () => {
           }
         }
       } catch (err) {
+        if (!isMounted) return;
         setIsError(true);
         setError(err instanceof Error ? err : new Error('加载失败'));
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          loadingRef.current = false;
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [page, currentStatus]);
-
-  // 检测新增的元素并执行动画
-  useEffect(() => {
-    const prevReviews = prevReviewsRef.current;
-    const prevIds = new Set(prevReviews.map(r => r.id));
-
-    // 找出新增的元素
-    const newReviews = reviews.filter(review => !prevIds.has(review.id));
-
-    // 只对新增的元素执行动画
-    newReviews.forEach((review, index) => {
-      const element = listItemsRef.current[review.id];
-      if (element) {
-        // 设置初始状态
-        gsap.set(element, {
-          opacity: 0,
-          y: 50,
-          scale: 0.8
-        });
-
-        // 执行动画
-        gsap.to(element, {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.5,
-          delay: index * 0.1,
-          ease: "power2.out"
-        });
-      }
-    });
-
-    // 更新 prevReviews
-    prevReviewsRef.current = reviews;
-  }, [reviews]);
-
-  // 重置数据的函数
-  const resetData = useCallback(() => {
-    setPage(1);
-    setReviews([]);
-    setImageLoaded({});
-    setHasMore(true);
-  }, []);
 
   // 设置 Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
+        if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
           setPage(prev => prev + 1);
         }
       },
@@ -141,15 +118,25 @@ const ReviewList = () => {
         observerRef.current.disconnect();
       }
     };
-  }, [hasMore, isLoading]);
+  }, [hasMore]);
 
-  // 更新观察的元素
-  useEffect(() => {
-    if (lastElementRef.current && observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current.observe(lastElementRef.current);
-    }
-  }, [reviews]);
+  // 重置数据的函数
+  const resetData = useCallback(() => {
+    setPage(1);
+    setReviews([]);
+    setImageLoaded({});
+    setHasMore(true);
+    loadingRef.current = false;
+  }, []);
+
+  // 处理状态切换
+  const handleStatusChange = (status: number) => {
+    setCurrentStatus(status);
+    setPage(1);
+    setReviews([]);
+    setHasMore(true);
+    loadingRef.current = false;
+  };
 
   // 处理审核操作
   const handleReview = async (isApproved: boolean, isDelete: boolean = false) => {
@@ -157,23 +144,6 @@ const ReviewList = () => {
 
     const currentReview = reviews.find(r => r.id === selectedReviewId);
     if (!currentReview) return;
-
-    const currentIndex = reviews.findIndex(r => r.id === selectedReviewId);
-    if (currentIndex === -1) return;
-
-    const element = listItemsRef.current[selectedReviewId];
-    if (!element) return;
-
-    // 获取List.Item元素（父元素）
-    const listItemElement = element.closest('.rs-list-item');
-    if (!listItemElement) return;
-
-    // 获取元素实际高度
-    const elementHeight = listItemElement.getBoundingClientRect().height;
-    const computedStyle = window.getComputedStyle(listItemElement);
-    const marginTop = parseFloat(computedStyle.marginTop);
-    const marginBottom = parseFloat(computedStyle.marginBottom);
-    const totalHeight = elementHeight + marginTop + marginBottom;
 
     if (isDelete) {
       await deletePassage(selectedReviewId);
@@ -185,45 +155,8 @@ const ReviewList = () => {
       });
     }
 
-    // 1. 首先执行消失动画
-    await gsap.to(element, {
-      opacity: 0,
-      scale: 0.8,
-      duration: 0.3,
-      ease: "power2.in"
-    });
-
-    // 2. 获取当前元素后面的所有元素
-    const followingElements = reviews
-      .slice(currentIndex + 1)
-      .map(r => listItemsRef.current[r.id]?.closest('.rs-list-item'))
-      .filter((el): el is HTMLElement => el !== null);
-
     setOpen(false);
-    // 3. 执行上移动画
-    if (followingElements.length > 0) {
-      await gsap.to(followingElements, {
-        y: `-=${totalHeight}`,
-        duration: 0.5,
-        ease: "power2.inOut",
-        stagger: 0.05
-      });
-    }
-
-    // 4. 在一个微任务中更新状态，确保动画完成
-    // 不能直接更新，react的set是异步的，导致直接使用会造成闪烁
-    await new Promise(resolve => {
-      requestAnimationFrame(() => {
-        setReviews(prev => prev.filter(review => review.id !== selectedReviewId));
-        resolve(null);
-      });
-    });
-
-    // 5. 等待一帧以确保状态更新完成
-    await new Promise(resolve => requestAnimationFrame(resolve));
-
-    // 6. 重置位置
-    gsap.set(followingElements, { clearProps: "y" });
+    setReviews(prev => prev.filter(review => review.id !== selectedReviewId));
 
     toaster.push(
       <Message type="success">
@@ -237,12 +170,45 @@ const ReviewList = () => {
     setOpen(true);
   };
 
-  // 处理状态切换
-  const handleStatusChange = (status: number) => {
-    setCurrentStatus(status);
-    setPage(1);
-    setReviews([]);
-    setHasMore(true);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.1,
+        staggerChildren: 1,
+        staggerDirection: 1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 30,
+      scale: 0.95,
+      filter: "blur(4px)"
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      filter: "blur(0px)",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 24,
+        mass: 1
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.8,
+      filter: "blur(4px)",
+      transition: {
+        duration: 0.2
+      }
+    }
   };
 
   return (
@@ -278,23 +244,41 @@ const ReviewList = () => {
         </ButtonGroup>
       </div>
 
-      <List hover style={{
-        overflow:'hidden'
-      }} >
-        {reviews.map((review, index) => (
-          <ReviewListItem
-            key={review.id}
-            review={review}
-            index={index}
-            isLastItem={index === reviews.length - 1}
-            imageLoaded={imageLoaded}
-            setImageLoaded={setImageLoaded}
-            lastElementRef={lastElementRef}
-            listItemsRef={listItemsRef}
-            onSelectReview={handleSelectReview}
-          />
-        ))}
-      </List>
+      <Suspense fallback={<LoadingPlaceholder />}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          style={{ position: 'relative' }}
+        >
+          <AnimatePresence mode="popLayout">
+            {reviews.map((review, index) => (
+              <motion.div
+                key={review.id}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                layout
+                style={{ 
+                  position: 'relative',
+                  zIndex: reviews.length - index
+                }}
+              >
+                <ReviewListItem
+                  review={review}
+                  index={index}
+                  isLastItem={index === reviews.length - 1}
+                  imageLoaded={imageLoaded}
+                  setImageLoaded={setImageLoaded}
+                  lastElementRef={lastElementRef}
+                  onSelectReview={handleSelectReview}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      </Suspense>
 
       {isLoading && (
         <div className="review-list-loader">

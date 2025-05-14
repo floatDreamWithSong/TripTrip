@@ -15,6 +15,7 @@ import { LikeModule } from './modules/like/like.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AiModule } from './modules/ai/ai.module';
 
+
 @Module({
   imports: [
     UserModule,

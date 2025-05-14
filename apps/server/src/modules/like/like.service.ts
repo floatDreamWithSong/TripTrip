@@ -1,8 +1,9 @@
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
+import { SchedulePassageService } from '../schedule/schedule.passage.service';
 
 @Injectable()
 export class LikeService {
@@ -12,18 +13,31 @@ export class LikeService {
 
   constructor(
     private readonly prismaService: PrismaService,
-    @InjectRedis() private readonly redisService: Redis
+    @InjectRedis() private readonly redisService: Redis,
+    private readonly schedulePassageService: SchedulePassageService
   ) {}
 
   async addPassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.sadd(key, userId.toString());
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
     return { success: true };
   }
 
   async removePassageLike(userId: number, passageId: number) {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
     await this.redisService.srem(key, userId.toString());
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      this.logger.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
     return { success: true };
   }
 
@@ -39,8 +53,8 @@ export class LikeService {
     return { success: true };
   }
 
-  // 每隔1分钟同步一次点赞数据
-  @Cron('0 */1 * * * *')
+  // 每到1分钟整数倍同步一次点赞数据
+  @Cron(CronExpression.EVERY_MINUTE)
   private async startSyncTask() {
     await this.syncLikesToDatabase();
   }
@@ -113,7 +127,6 @@ export class LikeService {
 
   async hasUserLikedPassage(userId: number, passageId: number): Promise<boolean> {
     const key = `${this.PASSAGE_LIKE_KEY}${passageId}`;
-    console.log(key)
     return (await this.redisService.sismember(key, userId.toString())) === 1;
   }
 

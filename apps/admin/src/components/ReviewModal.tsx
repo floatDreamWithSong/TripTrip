@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Button, Stack, Message, useToaster, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
+import { Modal, Button, Message, useToaster, Placeholder, Carousel, Tag, IconButton, Avatar } from 'rsuite';
 import ReactPlayer from 'react-player';
 import { getPassageDetail } from '@/request/review';
 import { Image, Passage, PassageToTag } from '@/types/passage';
@@ -141,13 +141,13 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
         className={isMobile ? "mobile-review-modal" : ""}
       >
         <Modal.Header>
-          <Modal.Title>{!shouldShowSkeleton ? review?.title : <Placeholder.Paragraph rows={1} active style={{ width: 200 }} />}</Modal.Title>
+          <Modal.Title>{!shouldShowSkeleton ? review?.title : <Placeholder.Graph active style={{ width: '100%', height:36 }} />}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {shouldShowSkeleton ? (
-            <Stack direction="column" spacing={20}>
-              <Placeholder.Graph active style={{ width: '100%', height: 400 }} />
-              <Stack direction="column" spacing={16}>
+            <div className='skeleton-container'>
+              <Placeholder.Graph active className='media-placeholder' style={{ width: '100%', height: 300 }} />
+              <div>
                 <div>
                   <h6 className="section-header">作者</h6>
                   <div className="author-container">
@@ -159,7 +159,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   <h6 className="section-header">标签</h6>
                   <div className="tags-container">
                     {[1, 2, 3].map(i => (
-                      <div key={i} style={{ width: 80, height: 24, marginRight: 10, marginBottom: 10 }}>
+                      <div key={i} style={{ width: 80, height: 24, marginRight: 10, marginBottom: 10, display: 'inline-block' }}>
                         <Placeholder.Graph active style={{ width: '100%', height: '100%', borderRadius: 12 }} />
                       </div>
                     ))}
@@ -169,10 +169,10 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   <h6 className="section-header">内容</h6>
                   <Placeholder.Paragraph rows={5} active style={{ width: '100%' }} />
                 </div>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
           ) : (
-            <Stack direction="column" spacing={20}>
+            <div className='data-content-container'>
               <div className="media-container">
                 {(review?.video || (review?.images && review.images.length > 0)) ? (
                   <div className="carousel-container">
@@ -251,7 +251,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                   </div>
                 )}
               </div>
-              <Stack direction="column" alignItems='flex-start' spacing={16}>
+              
                 <div>
                   <h6 className="section-header">作者</h6>
                   <div className="author-container">
@@ -282,8 +282,8 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
                     dangerouslySetInnerHTML={{ __html: review?.content ? md.render(review.content) : '' }}
                   />
                 </div>
-              </Stack>
-            </Stack>
+  </div>
+
           )}
         </Modal.Body>
         <Modal.Footer>

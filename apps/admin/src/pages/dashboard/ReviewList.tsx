@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { List, Button, Message, useToaster, Loader } from 'rsuite';
 import gsap from 'gsap';
 import { deletePassage, getPendingList, putReviewStatus } from '@/request/review';
-import { useQuery } from 'react-query';
 import { PASSAGE_STATUS } from '@triptrip/utils';
 import { PendingReviewPassages } from '@/types/passage';
 import ReviewModal from '@/components/ReviewModal';
@@ -16,52 +15,65 @@ const ReviewList = () => {
   const [hasMore, setHasMore] = useState(true);
   const [selectedReviewId, setSelectedReviewId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
   const listItemsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const prevReviewsRef = useRef<Review[]>([]);
   const toaster = useToaster();
   const [imageLoaded, setImageLoaded] = useState<{ [key: number]: boolean }>({});
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['pendingList', page],
-    queryFn: () => getPendingList({ page, limit: 10 }),
-  });
 
-  // 数据转换和状态更新
+  // 获取数据
   useEffect(() => {
-    if (data?.data) {
-      const newReviews = data.data.map((passage: PendingReviewPassages) => ({
-        id: passage.pid || 0,
-        title: passage.title || '',
-        author: passage.author?.username || '',
-        coverImage: passage.coverImageUrl || '',
-        images: [],
-        content: '',
-        description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
-        status: 'pending',
-      }));
-      if(newReviews.length === 0) {
-        toaster.push(
-          <Message type="info">
-            已经到底了~
-          </Message>
-        );
-        setHasMore(false)
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setIsError(false);
+        const response = await getPendingList({ page, limit: 10 });
+        
+        if (response?.data) {
+          const newReviews = response.data.map((passage: PendingReviewPassages) => ({
+            id: passage.pid || 0,
+            title: passage.title || '',
+            author: passage.author?.username || '',
+            coverImage: passage.coverImageUrl || '',
+            images: [],
+            content: '',
+            description: passage.PassageToTag?.map(pt => pt.tag.name) || [],
+            status: 'pending',
+          }));
+
+          if(newReviews.length === 0) {
+            toaster.push(
+              <Message type="info">
+                已经到底了~
+              </Message>
+            );
+            setHasMore(false);
+          }
+          
+          if (page === 1) {
+            setReviews(newReviews as Review[]);
+          } else {
+            setReviews(prev => {
+              const existingIds = new Set(prev.map(review => review.id));
+              const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
+              return [...prev, ...uniqueNewReviews] as Review[];
+            });
+          }
+        }
+      } catch (err) {
+        setIsError(true);
+        setError(err instanceof Error ? err : new Error('加载失败'));
+      } finally {
+        setIsLoading(false);
       }
-      
-      if (page === 1) {
-        setReviews(newReviews as Review[]);
-      } else {
-        setReviews(prev => {
-          // 获取已有的ID集合
-          const existingIds = new Set(prev.map(review => review.id));
-          // 过滤掉已经存在的ID
-          const uniqueNewReviews = newReviews.filter((review: Review) => !existingIds.has(review.id));
-          return [...prev, ...uniqueNewReviews] as Review[];
-        });
-      }
-    }
-  }, [data, page]);
+    };
+
+    fetchData();
+  }, [page]);
 
   // 检测新增的元素并执行动画
   useEffect(() => {
@@ -258,8 +270,6 @@ const ReviewList = () => {
           </Button>
         </div>
       )}
-
-
 
       <ReviewModal
         passageId={selectedReviewId}

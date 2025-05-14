@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtPayload, USER_TYPE } from '@triptrip/utils';
 import { EXCEPTIONS } from 'src/common/exceptions';
 import { PrismaService } from 'src/common/utils/prisma/prisma.service';
+import { SchedulePassageService } from '../schedule/schedule.passage.service';
 
 
 @Injectable()
@@ -22,9 +23,9 @@ export class CommentService {
             avatar: true
           }
         },
-        replies: {
-          include: {
-            _count: true,
+        _count: {
+          select: {
+            replies: true
           }
         }
       }
@@ -48,7 +49,10 @@ export class CommentService {
       }
     })
   }
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly schedulePassageService: SchedulePassageService
+  ) {}
   async createPassageComment(uid: number, passageId: number, content: string) {
     const comment = await this.prismaService.comment.create({
       data: {
@@ -56,9 +60,16 @@ export class CommentService {
         passageId,
         content
       }
-    })
+    });
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      console.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
+    return comment;
   }
-  async createReplyComment(uid: number, passageId: number, parentId: number , content: string) {
+  async createReplyComment(uid: number, passageId: number, parentId: number, content: string) {
     const comment = await this.prismaService.comment.create({
       data: {
         userId: uid,
@@ -66,7 +77,14 @@ export class CommentService {
         parentId,
         content
       }
-    })
+    });
+    
+    // 标记文章需要更新评分
+    this.schedulePassageService.markPassageForRatingUpdate(passageId).catch(err => {
+      console.error(`标记文章评分更新失败，ID: ${passageId}`, err);
+    });
+    
+    return comment;
   }
   async removeComment(user: JwtPayload, cid: number) {
     // 检测是否是作者
@@ -81,11 +99,23 @@ export class CommentService {
     if (user.type !== USER_TYPE.ADMIN && comment.userId !== user.uid) {
       throw EXCEPTIONS.COMMENT_DELETE_FAILED
     }
-    await this.prismaService.comment.delete({
-      where: {
-        cid
-      }
+    // 删除评论及其回复，通过事务删除
+    await this.prismaService.$transaction(async (tx) => {
+      await Promise.all([
+        tx.comment.deleteMany({
+          where: {
+            parentId: cid
+          }
+        }),
+        tx.comment.delete({
+          where: {
+            cid
+          }
+        })
+      ])
+
     })
+    
   }
 
 }

@@ -1,6 +1,5 @@
 // src/api/travelApi.js
 import Taro from '@tarojs/taro';
-import { set } from 'zod';
 
 
 
@@ -10,23 +9,31 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
 
     formData.append('title', title);
     formData.append('content', value);
-    formData.append('tags', tags);
+
+    // 处理tags数组
+    if (Array.isArray(tags)) {
+      tags.forEach(tag => {
+        formData.append('tags[]', tag);
+      });
+    } else if (tags) {
+      formData.append('tags[]', tags);
+    }
 
     console.log("准备提交的图片列表：", images);
 
     if (images.length > 0) {
       const coverImage = images[0];
       const coverFile = coverImage.originFileObj;
-    
+
       if (coverFile instanceof File) {
         formData.append('cover', coverFile); // ✅ 上传封面
         console.log('添加封面图片:', coverFile.name);
       } else {
         console.warn('封面图没有 originFileObj');
       }
-    
-      const otherImages = images.slice(1);
-      otherImages.forEach((image, index) => {
+
+      // const otherImages = images.slice(1);
+      images.forEach((image, index) => {
         const file = image.originFileObj;
         if (file instanceof File) {
           formData.append('images', file); // ✅ 其他图片上传
@@ -36,7 +43,7 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
         }
       });
     }
-    
+
 
     if (videoFile instanceof File) {
       formData.append('video', videoFile);
@@ -44,7 +51,7 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
     }
 
     console.log('FormData内容：');
-    for (let [key, value] of formData.entries()) {
+    for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
 
@@ -67,10 +74,17 @@ export async function submitTravel({ title, value, images, videoFile, agreement,
       Taro.showToast({ title: '请同意发布规则', icon: 'none', duration: 2000 });
       return false;
     }
-
-    const response = await fetch('http://daydreamer.net.cn:3000/passage/user', {
+    const Authorization = await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '')
+    const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
+    console.log('Authorization', Authorization)
+    console.log('X_Refresh_Token', X_Refresh_Token)
+    const response = await fetch('https://daydreamer.net.cn/passage/user', {
       method: 'POST',
       body: formData,
+      headers: {
+        'Authorization': Authorization,
+        'X-Refresh-Token': X_Refresh_Token,
+      }
     });
 
     const result = await response.json();
@@ -98,11 +112,17 @@ export async function fetchMyPassages() {
 
   try {
     const res = await Taro.request({
-      url: 'http://daydreamer.net.cn:3000/passage/user',
+      url: 'https://daydreamer.net.cn/passage/user',
       method: 'GET',
+<<<<<<< HEAD
       header: {
         'Authorization': Authorization,
         'X_Refresh_Token': X_Refresh_Token,
+=======
+      headers: {
+        'Authorization': Authorization,
+        'X-Refresh-Token': X_Refresh_Token,
+>>>>>>> fb282804b690d6e0f204a15de2c02f3e5d4d84b7
         // 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzQ2NjIxMTgxLCJleHAiOjE3NDY2MjExOTF9.1gLhP4HnRBDaXBlyxSyU6RdrzUiKe7jtBcPARp8smFk',
         // 'X-Refresh-Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjcsInVzZXJuYW1lIjoiZWNudSIsInVzZXJUeXBlIjoyLCJ0eXBlIjoicmVmcmVzaCIsImlhdCI6MTc0NjYyMTE4MSwiZXhwIjoxNzQ3MjI1OTgxfQ.hRAk9gZivnCmGBCvzskWvAu7dwBQQCs3m02Nw9BYuFA'
       }

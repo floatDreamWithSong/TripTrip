@@ -12,18 +12,13 @@ $placeholder-color: #7d7d7d;
 }
 
 .login-form, .register-form {
+  .back-button {
+    padding-bottom: 1rem;
+  }
   .form-header {
     margin-bottom: 1.5rem;
     position: relative;
 
-    .back-button {
-      position: absolute;
-      left: 0;
-      top: 0;
-      font-size: 1.5rem;
-      color: $text-color;
-      padding: 0.5rem;
-    }
 
     .title {
       font-size: 1.5rem;
@@ -53,9 +48,38 @@ $placeholder-color: #7d7d7d;
       box-sizing: border-box;
       font-size: 0.9rem;
       border: none;
-
+      transition: box-shadow 0.3s ease;
+      &:focus-within {
+        box-shadow: 0 0 4px 2px $primary-color;
+      }
       &::placeholder {
         color: $placeholder-color;
+      }
+    }
+    // 密码输入框容器
+    .password-input-container {
+      position: relative;
+      margin-bottom: 1rem;
+      
+      .input-field {
+        margin-bottom: 0;
+      }
+      
+      .password-visible-button {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: transparent;
+        color: $placeholder-color;
+        margin-bottom: 0;
+        z-index: 10;
       }
     }
   }
@@ -120,6 +144,7 @@ $placeholder-color: #7d7d7d;
       transform: translateY(-50%);
       font-size: 1.2rem;
     }
+    transition: background-color 0.3s ease;
   }
 
   .footer {
@@ -150,10 +175,9 @@ $placeholder-color: #7d7d7d;
     text-align: center;
     font-size: 1.5rem;
     background-color: #fbfbfb;
-
-    &:focus {
-      border-color: $primary-color;
-      outline: none;
+    transition: box-shadow 0.3s ease;
+    &:focus-within {
+      box-shadow: 0 0 4px 2px $primary-color;
     }
   }
 }

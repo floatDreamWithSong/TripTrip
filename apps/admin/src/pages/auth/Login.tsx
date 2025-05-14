@@ -7,6 +7,7 @@ import { Moon, Sun } from 'lucide-react';
 import { UserLogin } from '@triptrip/utils';
 import { useMutation } from 'react-query';
 import { login } from '../../request/auth';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Login = () => {
   const formRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,24 @@ const Login = () => {
 
   return (
     <Container>
+      <AnimatePresence>
+        {loginMutation.isLoading && (
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            exit={{ width: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              height: '3px',
+              background: '#1890ff',
+              zIndex: 1000,
+            }}
+          />
+        )}
+      </AnimatePresence>
       <Content>
         <div
           style={{

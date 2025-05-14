@@ -176,6 +176,7 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  max-height: none !important; 
 }
 
 .mobile-review-modal .rs-modal-header {

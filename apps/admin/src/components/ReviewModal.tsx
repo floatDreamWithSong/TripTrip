@@ -47,7 +47,7 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
   const [previewVisible, setPreviewVisible] = useState(false);
   const [aiContent, setAiContent] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [eventSource, _] = useState<EventSource | null>(null);
   const toaster = useToaster();
   const userData = useUserStore(state => state.userInfo);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -229,14 +229,19 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
     <>
       <Modal 
         size={isMobile ? "full" : "lg"} 
-        open={open} 
-        onClose={onClose}
+        open={open}
+        onClose={()=>{
+          if (eventSource) {
+            eventSource.close();
+          }
+          onClose()
+        }}
         className={isMobile ? "mobile-review-modal" : ""}
       >
         <Modal.Header>
           <Modal.Title>{!shouldShowSkeleton ? review?.title : <Placeholder.Graph active style={{ width: '100%', height:36 }} />}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body >
           {shouldShowSkeleton ? (
             <div className='skeleton-container'>
               <Placeholder.Graph active className='media-placeholder' style={{ width: '100%', height: 300 }} />
@@ -396,7 +401,9 @@ const ReviewModal = ({ passageId, open, onClose, handleReview }: ReviewModalProp
             </div>
           )}
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer style={{
+          paddingTop: '15px'
+        }} >
           <Button onClick={() => handleReview(false)} color="red" appearance="ghost">
             拒绝
           </Button>

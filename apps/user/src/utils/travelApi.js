@@ -1,7 +1,5 @@
-// src/api/travelApi.js
+// src/utils/travelApi.js
 import Taro from '@tarojs/taro';
-
-
 
 export async function submitTravel({ title, value, images, videoFile, agreement, tags }) {
   try {
@@ -166,5 +164,33 @@ export async function deletePassage(passageId) {
   } catch (error) {
     console.error('删除失败:', error);
     return Promise.reject(error); // 返回错误信息
+  }
+}
+
+export async function modifyPassage(params) {
+  const Authorization = await Taro.getStorage({ key: 'accessToken' }).then(res => res.data).catch(() => '')
+  const X_Refresh_Token = await Taro.getStorage({ key: 'refreshToken' }).then(res => res.data).catch(() => '')
+
+  try {
+    const response = await Taro.request({
+      url: 'https://daydreamer.net.cn/passage/user', // 你的后端API地址
+      method: 'PUT',
+      data: params,
+      headers: {
+        'Authorization': Authorization,
+        'X-Refresh-Token': X_Refresh_Token,
+      },
+    });
+
+    if (response.statusCode === 200) {
+      console.log('修改游记成功', response.data);
+      return response.data;
+    } else {
+      console.error('修改游记失败', response);
+      throw new Error(response.data.message || '修改游记失败');
+    }
+  } catch (error) {
+    console.error('修改游记请求错误:', error);
+    throw error;
   }
 }

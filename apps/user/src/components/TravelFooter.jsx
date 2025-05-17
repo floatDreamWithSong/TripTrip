@@ -4,7 +4,7 @@ import { LikeOutlined, CommentOutlined, ShareAltOutlined, HeartOutlined } from '
 import Taro from '@tarojs/taro';
 import './TravelFooter.scss';
 
-const TravelFooter = ({ onShare, initialLikeCount = 0, initialCollectCount = 0, initialCommentCount = 0 }) => {
+const TravelFooter = ({ onShare, initialLikeCount = 0, initialCollectCount = 0, initialCommentCount = 0, passageId }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isCollected, setIsCollected] = useState(false);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -13,12 +13,77 @@ const TravelFooter = ({ onShare, initialLikeCount = 0, initialCollectCount = 0, 
 
   // 点赞功能
   const handleLike = () => {
-    if (isLiked) {
-      setLikeCount(likeCount - 1);
-    } else {
-      setLikeCount(likeCount + 1);
+    if (!passageId) {
+      Taro.showToast({
+        title: '游记ID不存在',
+        icon: 'none'
+      });
+      return;
     }
-    setIsLiked(!isLiked);
+
+    if (isLiked) {
+      // 调用取消点赞接口
+      Taro.request({
+        url: 'https://daydreamer.net.cn/like/passage',
+        method: 'DELETE',
+        data: {
+          passageId: passageId
+        },
+        header: {
+          'Authorization': Taro.getStorageSync('accessToken') || '',
+          'X-Refresh-Token': Taro.getStorageSync('refreshToken') || '',
+        }
+      }).then(res => {
+        if (res.statusCode === 200 && res.data.code === 0) {
+          console.log('取消点赞成功', res.data);
+          setLikeCount(likeCount - 1);
+          setIsLiked(false);
+        } else {
+          console.error('取消点赞失败', res.data);
+          Taro.showToast({
+            title: '取消点赞失败',
+            icon: 'none'
+          });
+        }
+      }).catch(err => {
+        console.error('取消点赞请求错误', err);
+        Taro.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        });
+      });
+    } else {
+      // 调用点赞接口
+      Taro.request({
+        url: 'https://daydreamer.net.cn/like/passage',
+        method: 'POST',
+        data: {
+          passageId: passageId
+        },
+        header: {
+          'Authorization': Taro.getStorageSync('accessToken') || '',
+          'X-Refresh-Token': Taro.getStorageSync('refreshToken') || '',
+        }
+      }).then(res => {
+        if (res.statusCode === 200 && res.data.code === 0) {
+          console.log('点赞成功', res.data);
+          setLikeCount(likeCount + 1);
+          setIsLiked(true);
+        } else {
+          console.error('点赞失败', res.data);
+          Taro.showToast({
+            title: '点赞失败',
+            icon: 'none'
+          });
+        }
+      }).catch(err => {
+        console.error('点赞请求错误', err);
+        Taro.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        });
+      });
+    }
   };
 
   // 评论功能

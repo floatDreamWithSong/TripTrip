@@ -1,0 +1,118 @@
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.travel-skeleton {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  position: relative;
+  padding-bottom: 120px;
+
+  .pulse {
+    animation: pulse 1.5s infinite;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+  }
+
+  .skeleton-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background-color: #fff;
+    position: relative;
+    z-index: 10;
+
+    .skeleton-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-right: 20px;
+    }
+
+    .skeleton-username {
+      width: 150px;
+      height: 32px;
+    }
+  }
+
+  .skeleton-swiper {
+    width: 100%;
+    height: 1000px;
+  }
+
+  .skeleton-tags {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    margin-top: 20px;
+
+    .skeleton-tag {
+      width: 120px;
+      height: 30px;
+      margin-right: 15px;
+      border-radius: 15px;
+    }
+  }
+
+  .skeleton-content {
+    padding: 10px 20px 30px 20px;
+
+    .skeleton-title {
+      width: 80%;
+      height: 40px;
+      margin-bottom: 20px;
+    }
+
+    .skeleton-text {
+      width: 100%;
+      height: 28px;
+      margin-bottom: 15px;
+    }
+
+    .skeleton-text-short {
+      width: 60%;
+      height: 28px;
+      margin-bottom: 15px;
+    }
+  }
+
+  .skeleton-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+
+    .skeleton-input {
+      width: 100%;
+      height: 70px;
+      border-radius: 35px;
+      margin-bottom: 20px;
+    }
+
+    .skeleton-actions {
+      display: flex;
+      justify-content: space-around;
+
+      .skeleton-action {
+        width: 100px;
+        height: 40px;
+      }
+    }
+  }
+}

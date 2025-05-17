@@ -5,6 +5,7 @@ import TravelTag from '@/components/TravelTag';
 import TravelFooter from '@/components/TravelFooter';
 import TravelHeader from '@/components/TravelHeader';
 import MiniPlayer from '@/components/MiniPlayer';
+import TravelSkeleton from '@/components/TravelSkeleton';
 import { shareToMoments,shareToFriends } from '@/utils/share'
 import './travelDetail.scss';
 
@@ -20,6 +21,7 @@ const TravelDetail = () => {
   const commentCount = 6;
   const collectCount = 100;
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
+  const passageId = router.params.id; // 从路由参数中获取游记ID
 
   // 获取游记详情数据
   useEffect(() => {
@@ -228,11 +230,7 @@ const TravelDetail = () => {
   };
 
   if (loading) {
-    return (
-      <View className="loading-container">
-        <Text>加载中...</Text>
-      </View>
-    );
+    return <TravelSkeleton />;
   }
 
   if (!travelDetail) {
@@ -317,6 +315,7 @@ const TravelDetail = () => {
         initialLikeCount={travelDetail._count?.passageLikes || likeCount}
         initialCollectCount={travelDetail._count?.favorites || collectCount}
         initialCommentCount={travelDetail._count?.comments || commentCount}
+        passageId={passageId}
       />
 
       {/* 分享模态框 */}

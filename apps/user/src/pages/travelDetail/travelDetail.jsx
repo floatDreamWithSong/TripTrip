@@ -17,9 +17,6 @@ const TravelDetail = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [IsWifi, setIsWifi] = useState(false);
-  const likeCount = 239;
-  const commentCount = 6;
-  const collectCount = 100;
   const [videoCurrentTime, setVideoCurrentTime] = useState(0);
   const passageId = router.params.id; // 从路由参数中获取游记ID
 
@@ -40,7 +37,7 @@ const TravelDetail = () => {
           url: `https://daydreamer.net.cn/passage?id=${id}`,
           method: 'GET',
         });
-
+        console.log(response.data.data)
         if (response.data.data) {
           setTravelDetail(response.data.data);
         } else {
@@ -312,10 +309,12 @@ const TravelDetail = () => {
       {/* 底部操作栏 */}
       <TravelFooter
         onShare={handleShare}
-        initialLikeCount={travelDetail._count?.passageLikes || likeCount}
-        initialCollectCount={travelDetail._count?.favorites || collectCount}
-        initialCommentCount={travelDetail._count?.comments || commentCount}
+        initialLikeCount={travelDetail._count?.passageLikes || 0}
+        initialCollectCount={travelDetail._count?.favorites || 0}
+        initialCommentCount={travelDetail._count?.comments || 0}
         passageId={passageId}
+        initialIsLiked={travelDetail.passageLikes.length > 0}
+        initialIsCollected={travelDetail.favorites.length > 0}
       />
 
       {/* 分享模态框 */}

@@ -4,9 +4,9 @@ import { LikeOutlined, CommentOutlined, ShareAltOutlined, HeartOutlined } from '
 import Taro from '@tarojs/taro';
 import './TravelFooter.scss';
 
-const TravelFooter = ({ onShare, initialLikeCount = 0, initialCollectCount = 0, initialCommentCount = 0, passageId }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isCollected, setIsCollected] = useState(false);
+const TravelFooter = ({ onShare, initialLikeCount, initialCollectCount , initialCommentCount , passageId, initialIsLiked , initialIsCollected  }) => {
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [isCollected, setIsCollected] = useState(initialIsCollected);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [collectCount, setCollectCount] = useState(initialCollectCount);
   const [commentCount] = useState(initialCommentCount);

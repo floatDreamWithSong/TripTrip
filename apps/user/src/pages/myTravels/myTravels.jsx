@@ -1,5 +1,5 @@
 import { View, Text, Image } from '@tarojs/components';
-import { useLoad } from '@tarojs/taro';
+import { useLoad, useDidShow } from '@tarojs/taro';
 import { useState, useCallback, useEffect } from 'react';
 import './myTravels.scss';
 import MyCard from '../../components/MyCard';
@@ -108,6 +108,9 @@ export default function myTravels() {
     loadPassages();
   }, []);
 
+  useDidShow(() => {
+    console.log("111", userInfo.data)
+  });
 
   const handleFilterClick = (filter, baseList = result) => {
     setSelectedFilter(filter);
@@ -141,12 +144,14 @@ export default function myTravels() {
     })
   }
 
+
+
   return (
     <View className="myTravels">
       <View className="titleBlock">
         <View className="userTitle">
           <View className="userAvatar"></View>
-          <View className="userName">{userInfo.username || "未登录"}</View>
+          <View className="userName">{userInfo.username || "邱吉尔"}</View>
         </View>
         <View className='userBlock'>
           <View className='userBlockTitle'>
@@ -154,7 +159,7 @@ export default function myTravels() {
               <Image src={userInfo.avatar} />
             </View>
             <View className='userBlockInfo'>
-              <View className="userBlockName">{userInfo.email || "未登录"}</View>
+              <View className="userBlockName">{userInfo.email || "19535838578@163.com"}</View>
               <View className='userBlockIP'>性别：{userInfo.gender === 0 ? '男' : '女'}</View>
             </View>
             <View className="userBlockLevel">Lv.1</View>

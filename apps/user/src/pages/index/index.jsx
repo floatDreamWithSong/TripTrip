@@ -12,7 +12,7 @@ import './index.scss';
 const getRandomHeight = () => 150 + Math.floor(Math.floor(Math.random() * 5) * 40);
 
 // 页数和每页数据量
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 5;
 
 export default function Index() {
   const [columns, setColumns] = useState([[], []]);
@@ -30,7 +30,7 @@ export default function Index() {
   const [showRightScroll, setShowRightScroll] = useState(true);
 
   // 定义标签列表
-  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州','测试','辣的'];
+  const tags = ['推荐', '上海', '北京', '三亚', '广州', '重庆','苏州','杭州','测试'];
 
   // 瀑布流算法
   const distributeItems = useCallback((items) => {
